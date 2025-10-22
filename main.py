@@ -30,6 +30,7 @@ class ScreenQAApp:
         self.url_var = tk.StringVar()
         self.selected_devices = []
         self.current_results = {}
+        self.device_vars = {}  # Initialize device variables dictionary
         
         # Setup UI
         self.setup_ui()
@@ -40,58 +41,58 @@ class ScreenQAApp:
         self.root.bind('<Control-Return>', lambda e: self.start_capture())
         
     def setup_ui(self):
-        """Setup the main user interface with resizable panes"""
-        # Configure root grid weights
+        """Setup the modern user interface with improved layout and UX"""
+        # Configure root
         self.root.columnconfigure(0, weight=1)
         self.root.rowconfigure(0, weight=1)
         
-        # Main container
-        main_container = ttk.Frame(self.root, padding="5")
+        # Set modern style
+        self.setup_modern_style()
+        
+        # Main container with better padding
+        main_container = ttk.Frame(self.root, padding="10")
         main_container.grid(row=0, column=0, sticky=(tk.W, tk.E, tk.N, tk.S))
         main_container.columnconfigure(0, weight=1)
         main_container.rowconfigure(1, weight=1)
         
-        # URL Input Section (fixed at top)
-        url_container = ttk.Frame(main_container)
-        url_container.grid(row=0, column=0, sticky=(tk.W, tk.E), pady=(0, 5))
-        url_container.columnconfigure(0, weight=1)
-        self.setup_url_section(url_container, row=0)
+        # Header section with URL and controls
+        header_frame = ttk.Frame(main_container, style='Header.TFrame')
+        header_frame.grid(row=0, column=0, sticky=(tk.W, tk.E), pady=(0, 15))
+        header_frame.columnconfigure(1, weight=1)
+        self.setup_header_section(header_frame)
         
-        # Main resizable paned window (vertical split)
-        self.main_paned = tk.PanedWindow(main_container, orient=tk.VERTICAL, 
-                                        sashrelief=tk.RAISED, sashwidth=8,
-                                        bg='#e0e0e0')
-        self.main_paned.grid(row=1, column=0, sticky=(tk.W, tk.E, tk.N, tk.S))
+        # Main content area with horizontal layout
+        content_frame = ttk.Frame(main_container)
+        content_frame.grid(row=1, column=0, sticky=(tk.W, tk.E, tk.N, tk.S))
+        content_frame.columnconfigure(1, weight=2)  # Give more space to results
+        content_frame.columnconfigure(2, weight=1)  # Less space for sidebar
+        content_frame.rowconfigure(0, weight=1)
         
-        # Top pane - Device Selection (resizable height)
-        self.device_pane = ttk.Frame(self.main_paned)
-        self.main_paned.add(self.device_pane, minsize=150, height=250)
-        self.setup_device_section_resizable(self.device_pane)
+        # Left sidebar - Device Selection (compact)
+        device_frame = ttk.LabelFrame(content_frame, text="🖥️ Device Selection", padding="10")
+        device_frame.grid(row=0, column=0, sticky=(tk.W, tk.E, tk.N, tk.S), padx=(0, 10))
+        device_frame.columnconfigure(0, weight=1)
+        device_frame.rowconfigure(1, weight=1)
+        self.setup_device_section_compact(device_frame)
         
-        # Bottom pane - Main content with horizontal split
-        self.content_paned = tk.PanedWindow(self.main_paned, orient=tk.HORIZONTAL,
-                                           sashrelief=tk.RAISED, sashwidth=8,
-                                           bg='#e0e0e0')
-        self.main_paned.add(self.content_paned, minsize=300)
+        # Center - Main results area
+        results_frame = ttk.Frame(content_frame)
+        results_frame.grid(row=0, column=1, sticky=(tk.W, tk.E, tk.N, tk.S), padx=(0, 10))
+        results_frame.columnconfigure(0, weight=1)
+        results_frame.rowconfigure(0, weight=1)
+        self.setup_results_section(results_frame)
         
-        # Left side - Tabs (main content)
-        self.tabs_frame = ttk.Frame(self.content_paned)
-        self.content_paned.add(self.tabs_frame, minsize=600, width=800)
-        self.setup_tabs_resizable(self.tabs_frame)
+        # Right sidebar - Quick actions and info
+        self.sidebar_frame = ttk.Frame(content_frame)
+        self.sidebar_frame.grid(row=0, column=2, sticky=(tk.W, tk.E, tk.N, tk.S))
+        self.sidebar_frame.columnconfigure(0, weight=1)
+        self.setup_sidebar(self.sidebar_frame)
         
-        # Right side - Quick Actions Panel (collapsible)
-        self.actions_frame = ttk.Frame(self.content_paned)
-        self.content_paned.add(self.actions_frame, minsize=200, width=300)
-        self.setup_actions_panel(self.actions_frame)
-        
-        # Status bar (fixed at bottom)
-        status_container = ttk.Frame(main_container)
-        status_container.grid(row=2, column=0, sticky=(tk.W, tk.E), pady=(5, 0))
-        status_container.columnconfigure(0, weight=1)
-        self.setup_status_bar(status_container, row=0)
-        
-        # Configure paned window appearance
-        self.configure_paned_windows()
+        # Bottom status bar
+        status_frame = ttk.Frame(main_container, style='Status.TFrame')
+        status_frame.grid(row=2, column=0, sticky=(tk.W, tk.E), pady=(10, 0))
+        status_frame.columnconfigure(1, weight=1)
+        self.setup_status_bar_modern(status_frame)
     
     def setup_url_section(self, parent, row):
         """Setup URL input section"""
@@ -391,6 +392,305 @@ class ScreenQAApp:
                 
         except Exception as e:
             print(f"Error setting initial sash positions: {e}")
+
+    def setup_modern_style(self):
+        """Configure modern styling for the application"""
+        style = ttk.Style()
+        style.theme_use('clam')
+        
+        # Configure modern styles
+        style.configure('Header.TFrame', background='#f8f9fa', relief='solid', borderwidth=1)
+        style.configure('Status.TFrame', background='#e9ecef', relief='solid', borderwidth=1)
+        style.configure('Card.TFrame', background='white', relief='solid', borderwidth=1)
+        style.configure('Sidebar.TFrame', background='#f8f9fa')
+        
+        # Button styles
+        style.configure('Primary.TButton', background='#007bff', foreground='white')
+        style.configure('Success.TButton', background='#28a745', foreground='white')
+        style.configure('Warning.TButton', background='#ffc107', foreground='black')
+        style.configure('Danger.TButton', background='#dc3545', foreground='white')
+        
+        # Label styles
+        style.configure('Title.TLabel', font=('Arial', 12, 'bold'))
+        style.configure('Subtitle.TLabel', font=('Arial', 10), foreground='#6c757d')
+        style.configure('Success.TLabel', foreground='#28a745')
+        style.configure('Error.TLabel', foreground='#dc3545')
+
+    def setup_header_section(self, parent):
+        """Setup modern header with URL input and main controls"""
+        # Title and logo area
+        title_frame = ttk.Frame(parent)
+        title_frame.grid(row=0, column=0, columnspan=3, sticky=(tk.W, tk.E), pady=(0, 15))
+        
+        title_label = ttk.Label(title_frame, text="📸 ScreenQA", style='Title.TLabel', font=('Arial', 16, 'bold'))
+        title_label.grid(row=0, column=0, sticky=(tk.W,))
+        
+        subtitle_label = ttk.Label(title_frame, text="Website Screenshot Testing Tool", style='Subtitle.TLabel')
+        subtitle_label.grid(row=1, column=0, sticky=(tk.W,))
+        
+        # URL input section
+        url_frame = ttk.LabelFrame(parent, text="🌐 Website URL", padding="15")
+        url_frame.grid(row=1, column=0, columnspan=3, sticky=(tk.W, tk.E), pady=(0, 10))
+        url_frame.columnconfigure(1, weight=1)
+        
+        # URL entry with better styling
+        ttk.Label(url_frame, text="URL:", font=('Arial', 10, 'bold')).grid(row=0, column=0, padx=(0, 10), sticky=(tk.W,))
+        
+        url_entry = ttk.Entry(url_frame, textvariable=self.url_var, font=('Arial', 11), width=50)
+        url_entry.grid(row=0, column=1, sticky=(tk.W, tk.E), padx=(0, 10))
+        url_entry.bind('<Return>', lambda e: self.start_capture())
+        
+        # Control buttons with modern styling
+        button_frame = ttk.Frame(url_frame)
+        button_frame.grid(row=0, column=2)
+        
+        validate_btn = ttk.Button(button_frame, text="✓ Validate", command=self.validate_url, style='Warning.TButton')
+        validate_btn.grid(row=0, column=0, padx=(0, 5))
+        
+        self.capture_btn = ttk.Button(button_frame, text="📸 Capture Screenshots", 
+                                     command=self.start_capture, style='Primary.TButton')
+        self.capture_btn.grid(row=0, column=1, padx=(0, 5))
+        
+        settings_btn = ttk.Button(button_frame, text="⚙️", width=3, command=self.toggle_actions_panel)
+        settings_btn.grid(row=0, column=2)
+        
+        # Quick URL presets
+        presets_frame = ttk.Frame(url_frame)
+        presets_frame.grid(row=1, column=0, columnspan=3, sticky=(tk.W,), pady=(10, 0))
+        
+        ttk.Label(presets_frame, text="Quick URLs:", font=('Arial', 9)).grid(row=0, column=0, padx=(0, 10))
+        
+        quick_urls = ["google.com", "github.com", "stackoverflow.com", "responsive-design-test"]
+        for i, url in enumerate(quick_urls):
+            btn = ttk.Button(presets_frame, text=url, width=15,
+                           command=lambda u=url: self.url_var.set(f"https://{u}" if not u.startswith("http") else u))
+            btn.grid(row=0, column=i+1, padx=(0, 5))
+
+    def setup_device_section_compact(self, parent):
+        """Setup compact device selection with better organization"""
+        # Device selection controls
+        controls_frame = ttk.Frame(parent)
+        controls_frame.grid(row=0, column=0, sticky=(tk.W, tk.E), pady=(0, 10))
+        controls_frame.columnconfigure(0, weight=1)
+        
+        # Selection buttons in a more compact layout
+        btn_frame1 = ttk.Frame(controls_frame)
+        btn_frame1.grid(row=0, column=0, sticky=(tk.W, tk.E))
+        
+        ttk.Button(btn_frame1, text="Select All", command=self.select_all_devices).grid(row=0, column=0, padx=(0, 5), sticky=(tk.W, tk.E))
+        ttk.Button(btn_frame1, text="Clear All", command=self.clear_all_devices).grid(row=0, column=1, padx=(0, 5), sticky=(tk.W, tk.E))
+        
+        btn_frame2 = ttk.Frame(controls_frame)
+        btn_frame2.grid(row=1, column=0, sticky=(tk.W, tk.E), pady=(5, 0))
+        
+        ttk.Button(btn_frame2, text="📱 Mobile", command=self.select_mobile_devices).grid(row=0, column=0, padx=(0, 5), sticky=(tk.W, tk.E))
+        ttk.Button(btn_frame2, text="🖥️ Desktop", command=self.select_desktop_devices).grid(row=0, column=1, padx=(0, 5), sticky=(tk.W, tk.E))
+        
+        # Configure button columns
+        for frame in [btn_frame1, btn_frame2]:
+            frame.columnconfigure(0, weight=1)
+            frame.columnconfigure(1, weight=1)
+        
+        # Device list with improved scrolling
+        devices_container = ttk.Frame(parent)
+        devices_container.grid(row=1, column=0, sticky=(tk.W, tk.E, tk.N, tk.S))
+        devices_container.columnconfigure(0, weight=1)
+        devices_container.rowconfigure(0, weight=1)
+        
+        # Scrollable canvas for devices
+        canvas = tk.Canvas(devices_container, height=200, bg='white', highlightthickness=0)
+        scrollbar = ttk.Scrollbar(devices_container, orient="vertical", command=canvas.yview)
+        self.devices_frame = ttk.Frame(canvas)
+        
+        self.devices_frame.bind("<Configure>", lambda e: canvas.configure(scrollregion=canvas.bbox("all")))
+        
+        canvas.create_window((0, 0), window=self.devices_frame, anchor="nw")
+        canvas.configure(yscrollcommand=scrollbar.set)
+        
+        # Mouse wheel scrolling
+        def on_mousewheel(event):
+            if event.delta:
+                canvas.yview_scroll(int(-1*(event.delta/120)), "units")
+            elif event.num == 4:
+                canvas.yview_scroll(-1, "units")
+            elif event.num == 5:
+                canvas.yview_scroll(1, "units")
+        
+        for widget in [canvas, self.devices_frame, devices_container, parent]:
+            widget.bind("<MouseWheel>", on_mousewheel)
+            widget.bind("<Button-4>", on_mousewheel)
+            widget.bind("<Button-5>", on_mousewheel)
+        
+        self.device_canvas = canvas
+        
+        canvas.grid(row=0, column=0, sticky=(tk.W, tk.E, tk.N, tk.S))
+        scrollbar.grid(row=0, column=1, sticky=(tk.N, tk.S))
+
+    def setup_results_section(self, parent):
+        """Setup the main results area with tabs"""
+        # Create notebook for tabs
+        self.notebook = ttk.Notebook(parent)
+        self.notebook.grid(row=0, column=0, sticky=(tk.W, tk.E, tk.N, tk.S))
+        
+        # Progress & Results tab
+        self.results_frame = ttk.Frame(self.notebook)
+        self.notebook.add(self.results_frame, text="📊 Progress & Results")
+        self.setup_progress_tab(self.results_frame)
+        
+        # Screenshot Gallery tab
+        self.gallery_frame = ttk.Frame(self.notebook)
+        self.notebook.add(self.gallery_frame, text="🖼️ Screenshot Gallery")
+        self.setup_gallery_tab(self.gallery_frame)
+        
+        # History tab
+        self.history_frame = ttk.Frame(self.notebook)
+        self.notebook.add(self.history_frame, text="📋 History")
+        self.setup_history_tab(self.history_frame)
+        
+        # QA Tools tab
+        self.qa_frame = ttk.Frame(self.notebook)
+        self.notebook.add(self.qa_frame, text="🔧 QA Tools")
+        self.setup_qa_tab(self.qa_frame)
+
+    def setup_sidebar(self, parent):
+        """Setup the right sidebar with quick actions and info"""
+        parent.rowconfigure(0, weight=0)
+        parent.rowconfigure(1, weight=0)
+        parent.rowconfigure(2, weight=1)
+        
+        # Quick Captures section
+        quick_frame = ttk.LabelFrame(parent, text="⚡ Quick Captures", padding="10")
+        quick_frame.grid(row=0, column=0, sticky=(tk.W, tk.E), pady=(0, 10))
+        quick_frame.columnconfigure(0, weight=1)
+        
+        ttk.Button(quick_frame, text="📱 Mobile Devices", 
+                  command=lambda: self.quick_capture_mobile(), 
+                  style='Success.TButton').grid(row=0, column=0, sticky=(tk.W, tk.E), pady=(0, 5))
+        
+        ttk.Button(quick_frame, text="🖥️ Desktop Devices", 
+                  command=lambda: self.quick_capture_desktop(), 
+                  style='Success.TButton').grid(row=1, column=0, sticky=(tk.W, tk.E), pady=(0, 5))
+        
+        ttk.Button(quick_frame, text="🌐 All Devices", 
+                  command=lambda: self.quick_capture_all(), 
+                  style='Primary.TButton').grid(row=2, column=0, sticky=(tk.W, tk.E))
+        
+        # Settings section
+        settings_frame = ttk.LabelFrame(parent, text="⚙️ Settings", padding="10")
+        settings_frame.grid(row=1, column=0, sticky=(tk.W, tk.E), pady=(0, 10))
+        settings_frame.columnconfigure(0, weight=1)
+        
+        # Screenshot mode
+        mode_frame = ttk.Frame(settings_frame)
+        mode_frame.grid(row=0, column=0, sticky=(tk.W, tk.E), pady=(0, 10))
+        
+        ttk.Label(mode_frame, text="Screenshot Mode:", font=('Arial', 9, 'bold')).grid(row=0, column=0, sticky=(tk.W,))
+        
+        self.screenshot_mode = tk.StringVar(value="full_page")
+        mode_radio_frame = ttk.Frame(mode_frame)
+        mode_radio_frame.grid(row=1, column=0, sticky=(tk.W,), pady=(5, 0))
+        
+        ttk.Radiobutton(mode_radio_frame, text="📄 Full Page", variable=self.screenshot_mode, 
+                       value="full_page").grid(row=0, column=0, sticky=(tk.W,))
+        ttk.Radiobutton(mode_radio_frame, text="👁️ Viewport", variable=self.screenshot_mode, 
+                       value="viewport").grid(row=1, column=0, sticky=(tk.W,))
+        ttk.Radiobutton(mode_radio_frame, text="🤖 Auto Detect", variable=self.screenshot_mode, 
+                       value="auto").grid(row=2, column=0, sticky=(tk.W,))
+        
+        # Recent Screenshots section
+        recent_frame = ttk.LabelFrame(parent, text="📁 Recent Screenshots", padding="10")
+        recent_frame.grid(row=2, column=0, sticky=(tk.W, tk.E, tk.N, tk.S))
+        recent_frame.columnconfigure(0, weight=1)
+        recent_frame.rowconfigure(1, weight=1)
+        
+        refresh_btn = ttk.Button(recent_frame, text="🔄 Refresh", command=self.refresh_recent_screenshots)
+        refresh_btn.grid(row=0, column=0, sticky=(tk.W, tk.E), pady=(0, 10))
+        
+        # Scrollable list for recent screenshots
+        recent_list_frame = ttk.Frame(recent_frame)
+        recent_list_frame.grid(row=1, column=0, sticky=(tk.W, tk.E, tk.N, tk.S))
+        recent_list_frame.columnconfigure(0, weight=1)
+        recent_list_frame.rowconfigure(0, weight=1)
+        
+        self.recent_listbox = tk.Listbox(recent_list_frame, height=8, font=('Arial', 9))
+        recent_scrollbar = ttk.Scrollbar(recent_list_frame, orient="vertical", command=self.recent_listbox.yview)
+        self.recent_listbox.configure(yscrollcommand=recent_scrollbar.set)
+        
+        self.recent_listbox.grid(row=0, column=0, sticky=(tk.W, tk.E, tk.N, tk.S))
+        recent_scrollbar.grid(row=0, column=1, sticky=(tk.N, tk.S))
+        
+        self.recent_listbox.insert(0, "No screenshots yet")
+
+    def setup_status_bar_modern(self, parent):
+        """Setup modern status bar with better information display"""
+        # Status indicator
+        status_icon = ttk.Label(parent, text="●", foreground="#28a745", font=('Arial', 12))
+        status_icon.grid(row=0, column=0, padx=(10, 5))
+        
+        # Status text
+        self.status_var = tk.StringVar(value="Ready")
+        status_label = ttk.Label(parent, textvariable=self.status_var, font=('Arial', 10))
+        status_label.grid(row=0, column=1, sticky=(tk.W,), padx=(0, 20))
+        
+        # Device count with icon
+        device_icon = ttk.Label(parent, text="🖥️", font=('Arial', 10))
+        device_icon.grid(row=0, column=2, padx=(20, 5))
+        
+        self.device_count_var = tk.StringVar(value="0 devices selected")
+        device_count_label = ttk.Label(parent, textvariable=self.device_count_var, font=('Arial', 10))
+        device_count_label.grid(row=0, column=3, sticky=(tk.W,), padx=(0, 20))
+        
+        # Progress indicator (when capturing)
+        self.progress_var = tk.StringVar(value="")
+        progress_label = ttk.Label(parent, textvariable=self.progress_var, font=('Arial', 10), style='Success.TLabel')
+        progress_label.grid(row=0, column=4, sticky=(tk.E,), padx=(0, 10))
+
+    # Quick capture methods
+    def quick_capture_mobile(self):
+        """Quick capture for mobile devices"""
+        self.select_mobile_devices()
+        if self.url_var.get().strip():
+            self.start_capture()
+        else:
+            messagebox.showwarning("No URL", "Please enter a URL first")
+    
+    def quick_capture_desktop(self):
+        """Quick capture for desktop devices"""
+        self.select_desktop_devices()
+        if self.url_var.get().strip():
+            self.start_capture()
+        else:
+            messagebox.showwarning("No URL", "Please enter a URL first")
+    
+    def quick_capture_all(self):
+        """Quick capture for all devices"""
+        self.select_all_devices()
+        if self.url_var.get().strip():
+            self.start_capture()
+        else:
+            messagebox.showwarning("No URL", "Please enter a URL first")
+    
+    def refresh_recent_screenshots(self):
+        """Refresh the recent screenshots list"""
+        # This will be implemented to show actual recent files
+        self.recent_listbox.delete(0, tk.END)
+        try:
+            # Look for recent screenshot files
+            screenshots_dir = os.path.join(os.getcwd(), "screenshots")
+            if os.path.exists(screenshots_dir):
+                files = sorted([f for f in os.listdir(screenshots_dir) if f.endswith(('.png', '.jpg'))], 
+                             key=lambda x: os.path.getmtime(os.path.join(screenshots_dir, x)), reverse=True)[:10]
+                for file in files:
+                    self.recent_listbox.insert(tk.END, file)
+            else:
+                self.recent_listbox.insert(0, "No screenshots directory found")
+        except Exception as e:
+            self.recent_listbox.insert(0, f"Error: {str(e)}")
+
+    def toggle_actions_panel(self):
+        """Toggle the sidebar visibility"""
+        # This can be implemented to hide/show the sidebar
+        pass
     
     def setup_tabs(self, parent, row):
         """Setup tabbed interface for different views"""
