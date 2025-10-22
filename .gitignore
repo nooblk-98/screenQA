@@ -207,6 +207,7 @@ output/
 reports/
 temp/
 logs/
+# Ignore images globally but allow assets folder for README screenshots
 *.png
 *.jpg
 *.jpeg
@@ -215,6 +216,11 @@ logs/
 *.ico
 *.pdf
 *.html
+# Exception: Allow assets folder images for documentation
+!assets/
+!assets/*.png
+!assets/*.jpg
+!assets/*.jpeg
 
 # Build artifacts
 dist/
