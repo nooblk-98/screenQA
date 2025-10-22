@@ -2,7 +2,7 @@
 
 ![ScreenQA Logo](https://img.shields.io/badge/ScreenQA-Website%20Testing-blue?style=for-the-badge&logo=selenium)
 
-A comprehensive Python application with a simple GUI for capturing website screenshots across different device sizes and platforms for easy QA testing. Perfect for testing responsive designs, cross-device compatibility, and generating detailed QA reports.
+A comprehensive Python application with a modern, professional GUI for capturing website screenshots across different device sizes and platforms for easy QA testing. Features a 3-column device layout, real-time logging system, and viewport-first screenshot mode for faster testing. Perfect for testing responsive designs, cross-device compatibility, and generating detailed QA reports.
 
 ## 🚀 Features
 
@@ -18,12 +18,13 @@ A comprehensive Python application with a simple GUI for capturing website scree
 - **Mobile**: iPhone 15 Pro Max, iPhone 15, iPhone SE, Samsung Galaxy S24 Ultra/S24, Google Pixel 8 Pro
 - **Tablets**: iPad Pro 12.9", iPad Air, Samsung Galaxy Tab S9, Generic Tablet
 
-### Recent Features
-- **Screenshot Modes**: Full page, visible window, and auto-detection options
-- **Resizable Interface**: Adjustable panel sizes with drag bars for optimal workflow
-- **Bulk Operations**: Test multiple URLs and devices at once
-- **Report Generation**: HTML and PDF reports with visual comparisons
-- **Quality Assurance Tools**: Screenshot comparison and analysis
+### Recent Enhancements (v2.0)
+- **🎨 Modern UI Design**: Complete interface overhaul with professional 3-column layout
+- **⚡ Viewport Mode Default**: Faster screenshot capture with viewport-first approach
+- **📊 Real-Time Logging**: Comprehensive color-coded logging system with timestamps
+- **👨‍💻 Developer Attribution**: Professional About page with GitHub integration
+- **🔄 Streamlined Interface**: Removed unnecessary sections for cleaner user experience
+- **🖥️ Cross-Platform Builds**: Automated builds for Windows, macOS, and Linux
 
 ### User Interface
 - **Simple Tkinter GUI**: Easy-to-use interface, no web server required
@@ -34,7 +35,26 @@ A comprehensive Python application with a simple GUI for capturing website scree
 - **Batch Operations**: Capture multiple devices simultaneously
 - **Export Options**: Save screenshots and generate reports
 
-## 📋 Requirements
+## � UI Screenshots
+
+### Main Application Interface
+![ScreenQA Main Interface](assets/Screenshot%202025-10-22%20122424.png)
+
+*Main application showing the device selection grid, URL input, screenshot mode options, and real-time logging system*
+
+### About Page & Developer Information
+![ScreenQA About Page](assets/Screenshot%202025-10-22%20122454.png)
+
+*About page displaying developer details, GitHub integration, and comprehensive feature overview*
+
+The modern interface features:
+- **3-Column Device Layout**: Efficient horizontal space utilization with device categories
+- **Real-Time Logging**: Color-coded log messages with timestamps for complete transparency
+- **Professional Design**: Clean, intuitive interface with proper spacing and visual hierarchy
+- **Viewport Mode Default**: Faster screenshot capture with viewport-only mode as default
+- **Developer Attribution**: Complete developer information with GitHub profile integration
+
+## �📋 Requirements
 
 - **Python**: 3.7 or higher
 - **Operating System**: Windows, macOS, or Linux
@@ -88,24 +108,30 @@ A comprehensive Python application with a simple GUI for capturing website scree
    python main.py
    ```
 
-## Usage
+## 💻 Usage
 
 1. **Start the application**:
    ```bash
    python main.py
    ```
 
-2. **Customize your workspace**:
-   - Drag the resize bars to adjust panel sizes for optimal viewing
-   - Select screenshot mode: Full Page, Visible Window, or Auto
+2. **Modern Interface Overview**:
+   - **Device Selection**: Use the 3-column grid layout for easy device selection
+   - **Screenshot Mode**: Viewport mode is now the default for faster captures
+   - **Real-Time Logging**: Monitor capture progress with color-coded log messages
+   - **Professional Layout**: Enjoy the enhanced UI with better spacing and organization
 
-3. **Enter a website URL** in the input field
+3. **Capture Screenshots**:
+   - **Enter Website URL**: Input the URL you want to test
+   - **Select Devices**: Choose from desktop, mobile, and tablet configurations
+   - **Choose Mode**: Viewport (default, faster) or Full Page (complete content)
+   - **Monitor Progress**: Watch real-time logs showing capture status
 
-4. **Select devices** from the available configurations
-
-5. **Click "Capture Screenshots"** to begin the process
-
-6. **View results** in the built-in image viewer with mode information displayed
+4. **Advanced Features**:
+   - **Batch Selection**: Use "Select All", "Mobile Only", or "Desktop Only" buttons
+   - **Save Logs**: Export capture logs for documentation
+   - **About Page**: Access developer information and GitHub links
+   - **History Management**: View previous captures and results
 
 ### Advanced Features
 
