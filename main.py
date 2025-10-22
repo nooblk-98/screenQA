@@ -296,11 +296,6 @@ class ScreenQAApp:
         self.history_frame = ttk.Frame(notebook)
         notebook.add(self.history_frame, text="History")
         self.setup_history_tab(self.history_frame)
-        
-        # QA Features Tab
-        self.qa_frame = ttk.Frame(notebook)
-        notebook.add(self.qa_frame, text="QA Tools")
-        self.setup_qa_tab(self.qa_frame)
     
     def setup_actions_panel(self, parent):
         """Setup quick actions panel (right side)"""
@@ -649,11 +644,6 @@ class ScreenQAApp:
         self.notebook.add(self.history_frame, text="📋 History")
         self.setup_history_tab(self.history_frame)
         
-        # QA Tools tab
-        self.qa_frame = ttk.Frame(self.notebook)
-        self.notebook.add(self.qa_frame, text="🔧 QA Tools")
-        self.setup_qa_tab(self.qa_frame)
-        
         # About tab
         self.about_frame = ttk.Frame(self.notebook)
         self.notebook.add(self.about_frame, text="ℹ️ About")
@@ -958,6 +948,7 @@ class ScreenQAApp:
         self.log_message("INFO", "🚀 ScreenQA initialized and ready for capture")
         self.log_message("INFO", "💡 Press F9 to toggle sidebar | Ctrl+Enter to start capture")
         self.log_message("INFO", "ℹ️ Check the About tab for developer info and GitHub link")
+        self.log_message("INFO", "📋 Available tabs: Progress & Results | Gallery | History | About")
         
         # Results area
         results_frame = ttk.LabelFrame(parent, text="📊 Capture Results", padding="5")
@@ -1061,44 +1052,6 @@ class ScreenQAApp:
         
         self.history_tree.bind('<Double-1>', self.open_history_screenshot)
     
-    def setup_qa_tab(self, parent):
-        """Setup QA tools tab"""
-        parent.columnconfigure(0, weight=1)
-        
-        # QA Tools
-        qa_label = ttk.Label(parent, text="QA Testing Features", font=('Arial', 12, 'bold'))
-        qa_label.grid(row=0, column=0, pady=(0, 10))
-        
-        # Responsive breakpoints
-        breakpoints_frame = ttk.LabelFrame(parent, text="Responsive Breakpoints", padding="10")
-        breakpoints_frame.grid(row=1, column=0, sticky=(tk.W, tk.E), pady=(0, 10))
-        
-        ttk.Label(breakpoints_frame, text="Test common responsive breakpoints:").grid(row=0, column=0, columnspan=3, sticky=(tk.W,))
-        
-        breakpoint_buttons = [
-            ("Mobile (320px)", lambda: self.test_breakpoint(320)),
-            ("Tablet (768px)", lambda: self.test_breakpoint(768)),
-            ("Desktop (1024px)", lambda: self.test_breakpoint(1024)),
-            ("Large (1440px)", lambda: self.test_breakpoint(1440))
-        ]
-        
-        for i, (text, command) in enumerate(breakpoint_buttons):
-            ttk.Button(breakpoints_frame, text=text, command=command).grid(row=1, column=i, padx=5, pady=5)
-        
-        # Performance testing
-        perf_frame = ttk.LabelFrame(parent, text="Performance Testing", padding="10")
-        perf_frame.grid(row=2, column=0, sticky=(tk.W, tk.E), pady=(0, 10))
-        
-        ttk.Button(perf_frame, text="Test Load Time", command=self.test_load_time).grid(row=0, column=0, padx=5)
-        ttk.Button(perf_frame, text="Mobile Performance", command=self.test_mobile_performance).grid(row=0, column=1, padx=5)
-        
-        # Comparison tools
-        comp_frame = ttk.LabelFrame(parent, text="Screenshot Comparison", padding="10")
-        comp_frame.grid(row=3, column=0, sticky=(tk.W, tk.E), pady=(0, 10))
-        
-        ttk.Button(comp_frame, text="Compare Screenshots", command=self.compare_screenshots).grid(row=0, column=0, padx=5)
-        ttk.Button(comp_frame, text="Batch Analysis", command=self.batch_analysis).grid(row=0, column=1, padx=5)
-
     def setup_about_tab(self, parent):
         """Setup About tab with developer information"""
         # Configure scrollable frame
@@ -1208,7 +1161,7 @@ class ScreenQAApp:
             "🎯 Responsive design testing",
             "📁 Organized screenshot gallery",
             "⚡ Batch processing capabilities",
-            "🔧 QA tools and utilities",
+            "� Capture history and management",
             "💾 Export and reporting features"
         ]
         
@@ -1865,27 +1818,6 @@ class ScreenQAApp:
         
         with open(report_path, 'w', encoding='utf-8') as f:
             f.write(html_content)
-    
-    # QA Tools Methods
-    def test_breakpoint(self, width):
-        """Test specific breakpoint"""
-        messagebox.showinfo("Breakpoint Test", f"Testing breakpoint: {width}px\\n\\nThis would capture screenshots at {width}px width with various heights.")
-    
-    def test_load_time(self):
-        """Test load time"""
-        messagebox.showinfo("Load Time Test", "Load time testing feature would measure page load performance across devices.")
-    
-    def test_mobile_performance(self):
-        """Test mobile performance"""
-        messagebox.showinfo("Mobile Performance", "Mobile performance testing would analyze mobile-specific metrics.")
-    
-    def compare_screenshots(self):
-        """Compare screenshots"""
-        messagebox.showinfo("Screenshot Comparison", "Screenshot comparison feature would allow side-by-side analysis.")
-    
-    def batch_analysis(self):
-        """Batch analysis"""
-        messagebox.showinfo("Batch Analysis", "Batch analysis would process multiple URLs and generate comprehensive reports.")
     
     # Quick Action Methods for Resizable UI
     def quick_capture_mobile(self):
