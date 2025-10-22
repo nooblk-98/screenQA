@@ -1,0 +1,102 @@
+{
+    "devices": {
+        "Desktop Windows": {
+            "width": 1920,
+            "height": 1080,
+            "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+            "platform": "Windows",
+            "description": "Desktop Windows - Full HD"
+        },
+        "Desktop Mac": {
+            "width": 1440,
+            "height": 900,
+            "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+            "platform": "Mac",
+            "description": "Desktop Mac - Standard resolution"
+        },
+        "MacBook Pro 13\"": {
+            "width": 1280,
+            "height": 800,
+            "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+            "platform": "Mac",
+            "description": "MacBook Pro 13 inch"
+        },
+        "MacBook Pro 16\"": {
+            "width": 1512,
+            "height": 982,
+            "user_agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+            "platform": "Mac",
+            "description": "MacBook Pro 16 inch"
+        },
+        "iPhone 15 Pro Max": {
+            "width": 430,
+            "height": 932,
+            "user_agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1",
+            "platform": "iPhone",
+            "description": "iPhone 15 Pro Max"
+        },
+        "iPhone 15": {
+            "width": 393,
+            "height": 852,
+            "user_agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1",
+            "platform": "iPhone",
+            "description": "iPhone 15"
+        },
+        "iPhone SE": {
+            "width": 375,
+            "height": 667,
+            "user_agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1",
+            "platform": "iPhone",
+            "description": "iPhone SE"
+        },
+        "iPad Pro 12.9\"": {
+            "width": 1024,
+            "height": 1366,
+            "user_agent": "Mozilla/5.0 (iPad; CPU OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1",
+            "platform": "iPad",
+            "description": "iPad Pro 12.9 inch"
+        },
+        "iPad Air": {
+            "width": 820,
+            "height": 1180,
+            "user_agent": "Mozilla/5.0 (iPad; CPU OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1",
+            "platform": "iPad",
+            "description": "iPad Air"
+        },
+        "Samsung Galaxy S24 Ultra": {
+            "width": 412,
+            "height": 915,
+            "user_agent": "Mozilla/5.0 (Linux; Android 14; SM-S928B) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36",
+            "platform": "Android",
+            "description": "Samsung Galaxy S24 Ultra"
+        },
+        "Samsung Galaxy S24": {
+            "width": 384,
+            "height": 854,
+            "user_agent": "Mozilla/5.0 (Linux; Android 14; SM-S921B) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36",
+            "platform": "Android",
+            "description": "Samsung Galaxy S24"
+        },
+        "Google Pixel 8 Pro": {
+            "width": 412,
+            "height": 892,
+            "user_agent": "Mozilla/5.0 (Linux; Android 14; Pixel 8 Pro) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36",
+            "platform": "Android",
+            "description": "Google Pixel 8 Pro"
+        },
+        "Samsung Galaxy Tab S9": {
+            "width": 712,
+            "height": 1138,
+            "user_agent": "Mozilla/5.0 (Linux; Android 13; SM-X710) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+            "platform": "Android Tablet",
+            "description": "Samsung Galaxy Tab S9"
+        },
+        "Generic Tablet": {
+            "width": 768,
+            "height": 1024,
+            "user_agent": "Mozilla/5.0 (iPad; CPU OS 16_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.0 Mobile/15E148 Safari/604.1",
+            "platform": "Tablet",
+            "description": "Generic Tablet - 768x1024"
+        }
+    }
+}
