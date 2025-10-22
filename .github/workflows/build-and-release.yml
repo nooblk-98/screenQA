@@ -6,6 +6,18 @@ on:
     tags: [ 'v*' ]
   pull_request:
     branches: [ main ]
+  workflow_dispatch:
+    inputs:
+      create_release:
+        description: 'Create a release'
+        required: false
+        default: false
+        type: boolean
+      release_version:
+        description: 'Release version (e.g., v1.0.0)'
+        required: false
+        default: ''
+        type: string
 
 jobs:
   build-windows:
@@ -104,7 +116,7 @@ jobs:
   create-release:
     needs: [build-windows, build-linux]
     runs-on: ubuntu-latest
-    if: startsWith(github.ref, 'refs/tags/')
+    if: startsWith(github.ref, 'refs/tags/') || (github.event_name == 'workflow_dispatch' && inputs.create_release)
     
     steps:
     - name: Checkout repository
@@ -122,14 +134,46 @@ jobs:
         name: ScreenQA-Linux
         path: ./artifacts/
         
+    - name: Get version
+      id: version
+      run: |
+        if [[ $GITHUB_REF == refs/tags/* ]]; then
+          VERSION=${GITHUB_REF#refs/tags/}
+        elif [[ "${{ inputs.release_version }}" != "" ]]; then
+          VERSION="${{ inputs.release_version }}"
+        else
+          VERSION="development-$(date +%Y%m%d-%H%M%S)"
+        fi
+        echo "version=$VERSION" >> $GITHUB_OUTPUT
+        echo "Release version: $VERSION"
+        
     - name: Create Release
       uses: softprops/action-gh-release@v2
       with:
+        tag_name: ${{ steps.version.outputs.version }}
+        name: "ScreenQA ${{ steps.version.outputs.version }}"
         files: |
           ./artifacts/ScreenQA.exe
           ./artifacts/ScreenQA
+        body: |
+          ## ScreenQA Release ${{ steps.version.outputs.version }}
+          
+          ### Downloads
+          - **Windows**: ScreenQA.exe (double-click to run)
+          - **Linux**: ScreenQA (run with `./ScreenQA`)
+          
+          ### Requirements
+          - Chrome browser must be installed on the target machine
+          - No Python installation required
+          
+          ### New in this release
+          - Cross-device screenshot testing
+          - Resizable UI with drag bars
+          - Multiple screenshot modes (Full Page, Visible Window, Auto)
+          - Mouse wheel scrolling support
+          - Professional QA reporting tools
         generate_release_notes: true
         draft: false
-        prerelease: false
+        prerelease: ${{ !startsWith(github.ref, 'refs/tags/') }}
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
