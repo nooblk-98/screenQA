@@ -72,9 +72,15 @@ class ScreenshotCapture:
         return driver
     
     def capture_screenshot(self, url: str, device_name: str, 
-                         progress_callback: Optional[callable] = None) -> Tuple[bool, str, str]:
+                         progress_callback: Optional[callable] = None,
+                         screenshot_mode: str = "full_page") -> Tuple[bool, str, str]:
         """
         Capture screenshot for a specific URL and device
+        Args:
+            url: Website URL to capture
+            device_name: Name of device configuration to use
+            progress_callback: Optional callback for progress updates
+            screenshot_mode: "full_page", "viewport_only", or "auto"
         Returns: (success, screenshot_path, error_message)
         """
         if device_name not in self.devices['devices']:
@@ -106,23 +112,66 @@ class ScreenshotCapture:
             if progress_callback:
                 progress_callback(f"Capturing screenshot for {device_name}...")
             
-            # Create filename
+            # Create filename with mode indicator
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
             domain = urlparse(url).netloc or "unknown_site"
             safe_device_name = device_name.replace(" ", "_").replace("\"", "")
-            filename = f"{domain}_{safe_device_name}_{timestamp}.png"
+            mode_suffix = f"_{screenshot_mode}" if screenshot_mode != "full_page" else ""
+            filename = f"{domain}_{safe_device_name}{mode_suffix}_{timestamp}.png"
             screenshot_path = os.path.join(self.screenshots_dir, filename)
             
-            # Take screenshot
-            driver.save_screenshot(screenshot_path)
-            
-            # Optionally capture full page height
-            full_height = driver.execute_script("return Math.max( document.body.scrollHeight, document.body.offsetHeight, document.documentElement.clientHeight, document.documentElement.scrollHeight, document.documentElement.offsetHeight );")
-            
-            if full_height > device_config['height']:
-                # Capture full page
-                driver.set_window_size(device_config['width'], full_height)
-                time.sleep(1)
+            # Capture screenshot based on mode
+            if screenshot_mode == "viewport_only":
+                # Capture only visible viewport
+                driver.save_screenshot(screenshot_path)
+                
+            elif screenshot_mode == "full_page":
+                # Capture full page height
+                full_height = driver.execute_script("""
+                    return Math.max(
+                        document.body.scrollHeight,
+                        document.body.offsetHeight,
+                        document.documentElement.clientHeight,
+                        document.documentElement.scrollHeight,
+                        document.documentElement.offsetHeight
+                    );
+                """)
+                
+                if full_height > device_config['height']:
+                    # Set window to full page height and capture
+                    driver.set_window_size(device_config['width'], full_height)
+                    time.sleep(1)
+                    driver.save_screenshot(screenshot_path)
+                else:
+                    # Page fits in viewport, just take regular screenshot
+                    driver.save_screenshot(screenshot_path)
+                    
+            elif screenshot_mode == "auto":
+                # Auto-detect: capture full page if content extends beyond viewport
+                viewport_height = device_config['height']
+                full_height = driver.execute_script("""
+                    return Math.max(
+                        document.body.scrollHeight,
+                        document.body.offsetHeight,
+                        document.documentElement.clientHeight,
+                        document.documentElement.scrollHeight,
+                        document.documentElement.offsetHeight
+                    );
+                """)
+                
+                # If content is significantly longer than viewport, capture full page
+                if full_height > viewport_height * 1.2:  # 20% threshold
+                    driver.set_window_size(device_config['width'], full_height)
+                    time.sleep(1)
+                    driver.save_screenshot(screenshot_path)
+                    if progress_callback:
+                        progress_callback(f"Auto-detected long content, captured full page ({full_height}px)")
+                else:
+                    driver.save_screenshot(screenshot_path)
+                    if progress_callback:
+                        progress_callback(f"Auto-detected short content, captured viewport only")
+            else:
+                # Default to viewport only for unknown modes
                 driver.save_screenshot(screenshot_path)
             
             if progress_callback:
@@ -141,9 +190,15 @@ class ScreenshotCapture:
                 driver.quit()
     
     def capture_multiple_devices(self, url: str, selected_devices: List[str], 
-                               progress_callback: Optional[callable] = None) -> Dict:
+                               progress_callback: Optional[callable] = None,
+                               screenshot_mode: str = "full_page") -> Dict:
         """
         Capture screenshots for multiple devices
+        Args:
+            url: Website URL to capture
+            selected_devices: List of device names to capture
+            progress_callback: Optional callback for progress updates
+            screenshot_mode: "full_page", "viewport_only", or "auto"
         Returns: Dictionary with results for each device
         """
         results = {}
@@ -153,12 +208,13 @@ class ScreenshotCapture:
             if progress_callback:
                 progress_callback(f"Processing device {i}/{total_devices}: {device_name}")
             
-            success, path, error = self.capture_screenshot(url, device_name, progress_callback)
+            success, path, error = self.capture_screenshot(url, device_name, progress_callback, screenshot_mode)
             results[device_name] = {
                 'success': success,
                 'screenshot_path': path,
                 'error': error,
-                'device_info': self.devices['devices'].get(device_name, {})
+                'device_info': self.devices['devices'].get(device_name, {}),
+                'screenshot_mode': screenshot_mode
             }
             
             # Small delay between captures
@@ -246,7 +302,8 @@ class AsyncScreenshotCapture:
     
     def capture_async(self, url: str, selected_devices: List[str], 
                      progress_callback: Optional[callable] = None,
-                     complete_callback: Optional[callable] = None):
+                     complete_callback: Optional[callable] = None,
+                     screenshot_mode: str = "full_page"):
         """Capture screenshots asynchronously"""
         if self.is_running:
             return False, "Another capture is already in progress"
@@ -254,7 +311,7 @@ class AsyncScreenshotCapture:
         def capture_thread():
             self.is_running = True
             try:
-                results = self.capture.capture_multiple_devices(url, selected_devices, progress_callback)
+                results = self.capture.capture_multiple_devices(url, selected_devices, progress_callback, screenshot_mode)
                 if complete_callback:
                     complete_callback(results)
             except Exception as e:

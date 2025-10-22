@@ -128,6 +128,31 @@ class ScreenQAApp:
             btn = ttk.Button(presets_frame, text=url, width=20,
                            command=lambda u=url: self.url_var.set(u))
             btn.grid(row=0, column=i+1, padx=2)
+        
+        # Screenshot mode selection
+        mode_frame = ttk.Frame(url_frame)
+        mode_frame.grid(row=2, column=0, columnspan=5, sticky=(tk.W, tk.E), pady=(5, 0))
+        
+        ttk.Label(mode_frame, text="Screenshot Mode:").grid(row=0, column=0, padx=(0, 10))
+        
+        self.screenshot_mode_var = tk.StringVar(value="full_page")
+        
+        # Radio buttons for screenshot mode
+        modes = [
+            ("full_page", "🔖 Full Page", "Capture entire page content (scrollable)"),
+            ("viewport_only", "🖼️ Viewport Only", "Capture visible area only (faster)"),
+            ("auto", "🤖 Auto Detect", "Smart detection based on content length")
+        ]
+        
+        for i, (value, text, tooltip) in enumerate(modes):
+            radio = ttk.Radiobutton(mode_frame, text=text, variable=self.screenshot_mode_var, 
+                                  value=value)
+            radio.grid(row=0, column=i+1, padx=(0, 15), sticky=(tk.W,))
+            
+            # Add tooltip-like label (smaller text with description)
+            desc_label = ttk.Label(mode_frame, text=tooltip, font=('Arial', 8), 
+                                 foreground='gray')
+            desc_label.grid(row=1, column=i+1, padx=(0, 15), sticky=(tk.W,))
     
     def setup_device_section(self, parent, row):
         """Setup device selection section"""
@@ -388,15 +413,19 @@ class ScreenQAApp:
         results_frame.rowconfigure(0, weight=1)
         
         # Treeview for results
-        columns = ('Device', 'Status', 'Resolution', 'File Size', 'Actions')
+        columns = ('Device', 'Status', 'Resolution', 'Mode', 'File Size', 'Actions')
         self.results_tree = ttk.Treeview(results_frame, columns=columns, show='headings', height=10)
         
         for col in columns:
             self.results_tree.heading(col, text=col)
             if col == 'Device':
-                self.results_tree.column(col, width=200)
-            elif col == 'Actions':
+                self.results_tree.column(col, width=180)
+            elif col == 'Mode':
                 self.results_tree.column(col, width=100)
+            elif col == 'Actions':
+                self.results_tree.column(col, width=80)
+            elif col in ['Status', 'File Size']:
+                self.results_tree.column(col, width=90)
             else:
                 self.results_tree.column(col, width=80)
         
@@ -644,12 +673,16 @@ class ScreenQAApp:
         self.progress_bar.start(10)
         self.capture_btn.config(state='disabled')
         
-        # Start async capture
+        # Get selected screenshot mode
+        screenshot_mode = self.screenshot_mode_var.get()
+        
+        # Start async capture with selected mode
         success, message = self.async_capture.capture_async(
             validated_url, 
             self.selected_devices,
             progress_callback=self.update_progress,
-            complete_callback=self.capture_complete
+            complete_callback=self.capture_complete,
+            screenshot_mode=screenshot_mode
         )
         
         if not success:
@@ -690,18 +723,34 @@ class ScreenQAApp:
                 size_str = "N/A"
                 resolution = "N/A"
             
+            # Get screenshot mode display name
+            mode = result.get('screenshot_mode', 'full_page')
+            mode_display = {
+                'full_page': '📜 Full Page',
+                'viewport_only': '🖼️ Viewport',
+                'auto': '🤖 Auto'
+            }.get(mode, mode)
+            
             self.results_tree.insert('', 'end', values=(
                 device_name, 
                 status, 
                 resolution,
+                mode_display,
                 size_str,
                 "View" if result['success'] else "Error"
             ))
         
         # Update status
         total = len(results)
-        self.status_var.set(f"Capture complete: {success_count}/{total} successful")
-        self.progress_var.set(f"Complete: {success_count}/{total} screenshots captured")
+        mode_used = self.screenshot_mode_var.get()
+        mode_name = {
+            'full_page': 'Full Page',
+            'viewport_only': 'Viewport Only', 
+            'auto': 'Auto Detect'
+        }.get(mode_used, mode_used)
+        
+        self.status_var.set(f"Capture complete: {success_count}/{total} successful ({mode_name} mode)")
+        self.progress_var.set(f"Complete: {success_count}/{total} screenshots captured using {mode_name} mode")
         
         # Show completion message
         if success_count == total:

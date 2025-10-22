@@ -9,6 +9,7 @@ A comprehensive Python application with a simple GUI for capturing website scree
 ### Core Functionality
 - **Multi-Device Screenshot Capture**: Capture screenshots across 15+ predefined device configurations
 - **Real Browser Automation**: Uses Selenium WebDriver for authentic browser rendering
+- **Flexible Screenshot Modes**: Choose between Full Page, Viewport Only, or Auto Detect capture
 - **Responsive Design Testing**: Test websites at different breakpoints and resolutions
 - **Performance Analysis**: Measure load times and performance metrics across devices
 
@@ -17,17 +18,17 @@ A comprehensive Python application with a simple GUI for capturing website scree
 - **Mobile**: iPhone 15 Pro Max, iPhone 15, iPhone SE, Samsung Galaxy S24 Ultra/S24, Google Pixel 8 Pro
 - **Tablets**: iPad Pro 12.9", iPad Air, Samsung Galaxy Tab S9, Generic Tablet
 
-### QA Features
-- **Screenshot Gallery**: Visual gallery with thumbnails and organization
-- **Comparison Tools**: Side-by-side screenshot comparison
-- **Performance Testing**: Load time analysis and optimization recommendations
-- **Accessibility Checking**: Basic accessibility validation (alt text, headings, contrast)
-- **SEO Analysis**: Title tags, meta descriptions, heading structure analysis
-- **Responsive Breakpoint Testing**: Test common responsive breakpoints
-- **HTML & PDF Reports**: Generate comprehensive QA reports
+### Recent Features
+- **Screenshot Modes**: Full page, visible window, and auto-detection options
+- **Resizable Interface**: Adjustable panel sizes with drag bars for optimal workflow
+- **Bulk Operations**: Test multiple URLs and devices at once
+- **Report Generation**: HTML and PDF reports with visual comparisons
+- **Quality Assurance Tools**: Screenshot comparison and analysis
 
 ### User Interface
 - **Simple Tkinter GUI**: Easy-to-use interface, no web server required
+- **Resizable Layout**: Drag resize bars to customize panel sizes
+- **Screenshot Mode Selection**: Radio buttons to choose capture mode
 - **Progress Tracking**: Real-time progress updates during capture
 - **History Management**: View and manage screenshot history
 - **Batch Operations**: Capture multiple devices simultaneously
@@ -73,16 +74,24 @@ A comprehensive Python application with a simple GUI for capturing website scree
    python main.py
    ```
 
-## 🖥️ Usage Guide
+## Usage
 
-### Basic Screenshot Capture
-1. **Enter URL**: Type or paste the website URL you want to test
-2. **Select Devices**: Choose from 15+ predefined device configurations
-   - Use "Select All" for comprehensive testing
-   - Use "Mobile Only" or "Desktop Only" for focused testing
-3. **Validate URL**: Click "Validate" to check if the URL is accessible
-4. **Capture Screenshots**: Click "Capture Screenshots" to start the process
-5. **View Results**: Screenshots appear in the Results tab with status and file information
+1. **Start the application**:
+   ```bash
+   python main.py
+   ```
+
+2. **Customize your workspace**:
+   - Drag the resize bars to adjust panel sizes for optimal viewing
+   - Select screenshot mode: Full Page, Visible Window, or Auto
+
+3. **Enter a website URL** in the input field
+
+4. **Select devices** from the available configurations
+
+5. **Click "Capture Screenshots"** to begin the process
+
+6. **View results** in the built-in image viewer with mode information displayed
 
 ### Advanced Features
 
