@@ -142,11 +142,11 @@ jobs:
     - name: Build executable
       run: |
         if [ -f "ScreenQA-macOS.spec" ]; then
-            # Use macOS-specific spec file for better app bundle creation
+            # Use macOS-specific spec file (no additional options needed)
             python -m PyInstaller ScreenQA-macOS.spec --clean
         elif [ -f "ScreenQA.spec" ]; then
-            # Fallback to regular spec file
-            python -m PyInstaller ScreenQA.spec --clean --windowed
+            # Fallback to regular spec file (no additional options needed)
+            python -m PyInstaller ScreenQA.spec --clean
         else
             # Create with PyInstaller defaults
             python -m PyInstaller --onefile --windowed --name "ScreenQA" main.py
