@@ -590,17 +590,23 @@ class ScreenQAApp:
         ttk.Label(status_frame, textvariable=self.device_count_var).grid(row=0, column=2, sticky=(tk.E,))
     
     def load_devices(self):
-        """Load available devices into the UI"""
+        """Load available devices into the UI using a grid layout"""
         devices_by_platform = self.capture.get_available_devices()
+        
+        # Configure grid columns for better space utilization
+        columns = 3  # Number of columns for device layout
+        for col in range(columns):
+            self.devices_frame.columnconfigure(col, weight=1)
         
         row = 0
         for platform, devices in devices_by_platform.items():
-            # Platform header
+            # Platform header spanning all columns
             platform_label = ttk.Label(self.devices_frame, text=platform, font=('Arial', 10, 'bold'))
-            platform_label.grid(row=row, column=0, sticky=(tk.W,), pady=(5 if row > 0 else 0, 2))
+            platform_label.grid(row=row, column=0, columnspan=columns, sticky=(tk.W,), pady=(10 if row > 0 else 0, 5))
             row += 1
             
-            # Device checkboxes
+            # Device checkboxes in grid layout
+            col = 0
             for device in devices:
                 var = tk.BooleanVar()
                 self.device_vars[device['name']] = var
@@ -611,7 +617,7 @@ class ScreenQAApp:
                     variable=var,
                     command=self.update_device_selection
                 )
-                checkbox.grid(row=row, column=0, sticky=(tk.W,), padx=20)
+                checkbox.grid(row=row, column=col, sticky=(tk.W,), padx=10, pady=2)
                 
                 # Add mouse wheel scrolling to each checkbox
                 if hasattr(self, 'device_canvas'):
@@ -626,6 +632,15 @@ class ScreenQAApp:
                     checkbox.bind("<MouseWheel>", checkbox_mousewheel)
                     checkbox.bind("<Button-4>", checkbox_mousewheel)
                     checkbox.bind("<Button-5>", checkbox_mousewheel)
+                
+                # Move to next column, wrap to next row if needed
+                col += 1
+                if col >= columns:
+                    col = 0
+                    row += 1
+            
+            # If we ended in the middle of a row, move to next row for next platform
+            if col > 0:
                 row += 1
         
         self.update_device_selection()
