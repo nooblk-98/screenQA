@@ -50,14 +50,17 @@ class ScreenQAApp:
         """Setup the modern user interface with improved layout and UX"""
         # Configure root
         self.root.columnconfigure(0, weight=1)
-        self.root.rowconfigure(0, weight=1)
+        self.root.rowconfigure(1, weight=1)  # Changed to 1 to accommodate menu
+        
+        # Setup menu bar
+        self.setup_menu_bar()
         
         # Set modern style
         self.setup_modern_style()
         
         # Main container with better padding
         main_container = ttk.Frame(self.root, padding="10")
-        main_container.grid(row=0, column=0, sticky=(tk.W, tk.E, tk.N, tk.S))
+        main_container.grid(row=1, column=0, sticky=(tk.W, tk.E, tk.N, tk.S))  # Changed to row 1
         main_container.columnconfigure(0, weight=1)
         main_container.rowconfigure(1, weight=1)
         
@@ -422,6 +425,99 @@ class ScreenQAApp:
         style.configure('Success.TLabel', foreground='#28a745')
         style.configure('Error.TLabel', foreground='#dc3545')
 
+    def setup_menu_bar(self):
+        """Setup application menu bar"""
+        menubar = tk.Menu(self.root)
+        self.root.config(menu=menubar)
+        
+        # File menu
+        file_menu = tk.Menu(menubar, tearoff=0)
+        menubar.add_cascade(label="File", menu=file_menu)
+        file_menu.add_command(label="New Capture", command=self.start_capture, accelerator="Ctrl+Enter")
+        file_menu.add_separator()
+        file_menu.add_command(label="Open Screenshots Folder", command=self.open_screenshots_folder)
+        file_menu.add_command(label="Export Report", command=self.generate_report)
+        file_menu.add_separator()
+        file_menu.add_command(label="Exit", command=self.root.quit, accelerator="Alt+F4")
+        
+        # Tools menu
+        tools_menu = tk.Menu(menubar, tearoff=0)
+        menubar.add_cascade(label="Tools", menu=tools_menu)
+        tools_menu.add_command(label="Clear Log", command=self.clear_log, accelerator="Ctrl+L")
+        tools_menu.add_command(label="Save Log", command=self.save_log, accelerator="Ctrl+S")
+        tools_menu.add_separator()
+        tools_menu.add_command(label="Refresh Gallery", command=self.refresh_gallery)
+        tools_menu.add_command(label="Toggle Sidebar", command=self.toggle_actions_panel, accelerator="F9")
+        
+        # Device selection submenu
+        devices_menu = tk.Menu(tools_menu, tearoff=0)
+        tools_menu.add_cascade(label="Device Selection", menu=devices_menu)
+        devices_menu.add_command(label="Select All Devices", command=self.select_all_devices)
+        devices_menu.add_command(label="Clear All Devices", command=self.clear_all_devices)
+        devices_menu.add_separator()
+        devices_menu.add_command(label="Mobile Only", command=self.select_mobile_devices)
+        devices_menu.add_command(label="Desktop Only", command=self.select_desktop_devices)
+        
+        # Help menu
+        help_menu = tk.Menu(menubar, tearoff=0)
+        menubar.add_cascade(label="Help", menu=help_menu)
+        help_menu.add_command(label="About ScreenQA", command=self.show_about_tab)
+        help_menu.add_command(label="GitHub Repository", command=lambda: self.open_url("https://github.com/nooblk-98/screenQA"))
+        help_menu.add_command(label="Report Issue", command=lambda: self.open_url("https://github.com/nooblk-98/screenQA/issues"))
+        help_menu.add_separator()
+        help_menu.add_command(label="Keyboard Shortcuts", command=self.show_shortcuts)
+
+    def show_about_tab(self):
+        """Switch to the About tab"""
+        try:
+            # Find and select the About tab
+            for i in range(self.notebook.index("end")):
+                if "About" in self.notebook.tab(i, "text"):
+                    self.notebook.select(i)
+                    break
+            self.log_message("INFO", "ℹ️ Switched to About tab")
+        except Exception as e:
+            self.log_message("ERROR", f"❌ Failed to switch to About tab: {str(e)}")
+    
+    def show_shortcuts(self):
+        """Show keyboard shortcuts dialog"""
+        shortcuts_window = tk.Toplevel(self.root)
+        shortcuts_window.title("Keyboard Shortcuts")
+        shortcuts_window.geometry("400x300")
+        shortcuts_window.resizable(False, False)
+        
+        # Center the window
+        shortcuts_window.transient(self.root)
+        shortcuts_window.grab_set()
+        
+        main_frame = ttk.Frame(shortcuts_window, padding="20")
+        main_frame.pack(fill=tk.BOTH, expand=True)
+        
+        title_label = ttk.Label(main_frame, text="⌨️ Keyboard Shortcuts", 
+                               font=('Arial', 14, 'bold'))
+        title_label.pack(pady=(0, 20))
+        
+        shortcuts = [
+            ("Ctrl + Enter", "Start screenshot capture"),
+            ("F9", "Toggle sidebar panel"),
+            ("Ctrl + L", "Clear log"),
+            ("Ctrl + S", "Save log to file"),
+            ("Alt + F4", "Exit application"),
+            ("Double-click", "Open screenshot (in results)")
+        ]
+        
+        for shortcut, description in shortcuts:
+            shortcut_frame = ttk.Frame(main_frame)
+            shortcut_frame.pack(fill=tk.X, pady=2)
+            
+            ttk.Label(shortcut_frame, text=shortcut, font=('Arial', 10, 'bold'), 
+                     width=15).pack(side=tk.LEFT)
+            ttk.Label(shortcut_frame, text=description, font=('Arial', 10)).pack(side=tk.LEFT, padx=(10, 0))
+        
+        close_btn = ttk.Button(main_frame, text="Close", 
+                              command=shortcuts_window.destroy)
+        close_btn.pack(pady=(20, 0))
+
     def setup_header_section(self, parent):
         """Setup modern header with URL input and main controls"""
         # Title and logo area
@@ -557,6 +653,11 @@ class ScreenQAApp:
         self.qa_frame = ttk.Frame(self.notebook)
         self.notebook.add(self.qa_frame, text="🔧 QA Tools")
         self.setup_qa_tab(self.qa_frame)
+        
+        # About tab
+        self.about_frame = ttk.Frame(self.notebook)
+        self.notebook.add(self.about_frame, text="ℹ️ About")
+        self.setup_about_tab(self.about_frame)
 
     def setup_sidebar(self, parent):
         """Setup the right sidebar with quick actions and info"""
@@ -856,6 +957,7 @@ class ScreenQAApp:
         # Add initial log entry
         self.log_message("INFO", "🚀 ScreenQA initialized and ready for capture")
         self.log_message("INFO", "💡 Press F9 to toggle sidebar | Ctrl+Enter to start capture")
+        self.log_message("INFO", "ℹ️ Check the About tab for developer info and GitHub link")
         
         # Results area
         results_frame = ttk.LabelFrame(parent, text="📊 Capture Results", padding="5")
@@ -996,6 +1098,183 @@ class ScreenQAApp:
         
         ttk.Button(comp_frame, text="Compare Screenshots", command=self.compare_screenshots).grid(row=0, column=0, padx=5)
         ttk.Button(comp_frame, text="Batch Analysis", command=self.batch_analysis).grid(row=0, column=1, padx=5)
+
+    def setup_about_tab(self, parent):
+        """Setup About tab with developer information"""
+        # Configure scrollable frame
+        parent.columnconfigure(0, weight=1)
+        parent.rowconfigure(0, weight=1)
+        
+        # Main container with scrolling
+        canvas = tk.Canvas(parent, bg='white')
+        scrollbar = ttk.Scrollbar(parent, orient="vertical", command=canvas.yview)
+        scrollable_frame = ttk.Frame(canvas)
+        
+        scrollable_frame.bind(
+            "<Configure>",
+            lambda e: canvas.configure(scrollregion=canvas.bbox("all"))
+        )
+        
+        canvas.create_window((0, 0), window=scrollable_frame, anchor="nw")
+        canvas.configure(yscrollcommand=scrollbar.set)
+        
+        # Header section
+        header_frame = ttk.Frame(scrollable_frame, style='Card.TFrame', padding="20")
+        header_frame.pack(fill=tk.X, padx=20, pady=(20, 10))
+        
+        # App title and icon
+        title_frame = ttk.Frame(header_frame)
+        title_frame.pack(fill=tk.X, pady=(0, 15))
+        
+        app_title = ttk.Label(title_frame, text="📸 ScreenQA", 
+                             font=('Arial', 24, 'bold'), foreground='#007bff')
+        app_title.pack()
+        
+        app_subtitle = ttk.Label(title_frame, text="Website Screenshot Testing Tool", 
+                                font=('Arial', 14), foreground='#6c757d')
+        app_subtitle.pack(pady=(5, 0))
+        
+        version_label = ttk.Label(title_frame, text="Version 1.0.0", 
+                                 font=('Arial', 10), foreground='#28a745')
+        version_label.pack(pady=(5, 0))
+        
+        # Developer information
+        dev_frame = ttk.LabelFrame(scrollable_frame, text="👨‍💻 Developer Information", padding="20")
+        dev_frame.pack(fill=tk.X, padx=20, pady=(0, 10))
+        
+        # Developer details
+        dev_info = [
+            ("Name:", "Lahiru Sandaruwan Liyanage"),
+            ("Location:", "Sri Lanka 🇱🇰"),
+            ("Profession:", "DevOps Engineer"),
+            ("Specialization:", "Infrastructure, Automation & Testing Tools")
+        ]
+        
+        for i, (label, value) in enumerate(dev_info):
+            info_frame = ttk.Frame(dev_frame)
+            info_frame.pack(fill=tk.X, pady=2)
+            
+            ttk.Label(info_frame, text=label, font=('Arial', 10, 'bold'), 
+                     width=15).pack(side=tk.LEFT)
+            ttk.Label(info_frame, text=value, font=('Arial', 10)).pack(side=tk.LEFT, padx=(10, 0))
+        
+        # GitHub section
+        github_frame = ttk.LabelFrame(scrollable_frame, text="🔗 Source Code & Contact", padding="20")
+        github_frame.pack(fill=tk.X, padx=20, pady=(0, 10))
+        
+        # GitHub repository
+        github_info_frame = ttk.Frame(github_frame)
+        github_info_frame.pack(fill=tk.X, pady=(0, 15))
+        
+        ttk.Label(github_info_frame, text="GitHub Repository:", 
+                 font=('Arial', 10, 'bold')).pack(anchor=tk.W)
+        
+        github_url = "https://github.com/nooblk-98/screenQA"
+        github_link_frame = ttk.Frame(github_info_frame)
+        github_link_frame.pack(fill=tk.X, pady=(5, 0))
+        
+        github_link = ttk.Label(github_link_frame, text=github_url, 
+                               font=('Arial', 10, 'underline'), foreground='#007bff', 
+                               cursor='hand2')
+        github_link.pack(side=tk.LEFT)
+        github_link.bind("<Button-1>", lambda e: self.open_url(github_url))
+        
+        copy_btn = ttk.Button(github_link_frame, text="📋 Copy", width=8,
+                             command=lambda: self.copy_to_clipboard(github_url))
+        copy_btn.pack(side=tk.RIGHT)
+        
+        # Action buttons
+        actions_frame = ttk.Frame(github_frame)
+        actions_frame.pack(fill=tk.X, pady=(10, 0))
+        
+        github_btn = ttk.Button(actions_frame, text="🌐 Open GitHub", 
+                               command=lambda: self.open_url(github_url),
+                               style='Primary.TButton')
+        github_btn.pack(side=tk.LEFT, padx=(0, 10))
+        
+        issues_btn = ttk.Button(actions_frame, text="🐛 Report Issue", 
+                               command=lambda: self.open_url(f"{github_url}/issues"),
+                               style='Warning.TButton')
+        issues_btn.pack(side=tk.LEFT, padx=(0, 10))
+        
+        # Application features
+        features_frame = ttk.LabelFrame(scrollable_frame, text="✨ Key Features", padding="20")
+        features_frame.pack(fill=tk.X, padx=20, pady=(0, 10))
+        
+        features = [
+            "📱 Multi-device screenshot capture (Mobile, Tablet, Desktop)",
+            "🌐 Cross-browser compatibility testing",
+            "📊 Real-time progress tracking and logging",
+            "🎯 Responsive design testing",
+            "📁 Organized screenshot gallery",
+            "⚡ Batch processing capabilities",
+            "🔧 QA tools and utilities",
+            "💾 Export and reporting features"
+        ]
+        
+        for feature in features:
+            feature_label = ttk.Label(features_frame, text=f"  {feature}", 
+                                     font=('Arial', 10))
+            feature_label.pack(anchor=tk.W, pady=1)
+        
+        # Technical information
+        tech_frame = ttk.LabelFrame(scrollable_frame, text="🔧 Technical Details", padding="20")
+        tech_frame.pack(fill=tk.X, padx=20, pady=(0, 10))
+        
+        tech_info = [
+            ("Framework:", "Python 3.11+ with Tkinter GUI"),
+            ("Web Driver:", "Selenium WebDriver"),
+            ("Image Processing:", "PIL/Pillow"),
+            ("Build System:", "PyInstaller"),
+            ("CI/CD:", "GitHub Actions"),
+            ("License:", "MIT License")
+        ]
+        
+        for label, value in tech_info:
+            tech_info_frame = ttk.Frame(tech_frame)
+            tech_info_frame.pack(fill=tk.X, pady=2)
+            
+            ttk.Label(tech_info_frame, text=label, font=('Arial', 10, 'bold'), 
+                     width=15).pack(side=tk.LEFT)
+            ttk.Label(tech_info_frame, text=value, font=('Arial', 10)).pack(side=tk.LEFT, padx=(10, 0))
+        
+        # Footer
+        footer_frame = ttk.Frame(scrollable_frame, style='Card.TFrame', padding="20")
+        footer_frame.pack(fill=tk.X, padx=20, pady=(0, 20))
+        
+        footer_text = ttk.Label(footer_frame, 
+                               text="Thank you for using ScreenQA! 🙏\nBuilt with ❤️ for the testing community",
+                               font=('Arial', 11), foreground='#6c757d', justify=tk.CENTER)
+        footer_text.pack()
+        
+        # Configure canvas and scrollbar
+        canvas.pack(side="left", fill="both", expand=True)
+        scrollbar.pack(side="right", fill="y")
+        
+        # Mouse wheel scrolling
+        def on_mousewheel(event):
+            canvas.yview_scroll(int(-1*(event.delta/120)), "units")
+        
+        canvas.bind("<MouseWheel>", on_mousewheel)
+        scrollable_frame.bind("<MouseWheel>", on_mousewheel)
+
+    def open_url(self, url):
+        """Open URL in default browser"""
+        try:
+            import webbrowser
+            webbrowser.open(url)
+            self.log_message("INFO", f"🌐 Opened URL: {url}")
+        except Exception as e:
+            self.log_message("ERROR", f"❌ Failed to open URL: {str(e)}")
+    
+    def copy_to_clipboard(self, text):
+        """Copy text to clipboard"""
+        try:
+            self.root.clipboard_clear()
+            self.root.clipboard_append(text)
+            self.log_message("SUCCESS", f"📋 Copied to clipboard: {text}")
+        except Exception as e:
+            self.log_message("ERROR", f"❌ Failed to copy to clipboard: {str(e)}")
     
     def setup_status_bar(self, parent, row):
         """Setup status bar"""
