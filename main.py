@@ -109,7 +109,7 @@ class ScreenQAApp:
         validate_btn.grid(row=0, column=2, padx=(0, 5))
         
         self.capture_btn = ttk.Button(url_frame, text="Capture Screenshots", 
-                                     command=self.start_capture, style="Accent.TButton")
+                                     command=self.start_capture)
         self.capture_btn.grid(row=0, column=3, padx=(0, 5))
         
         # Toggle panel button
@@ -1092,8 +1092,22 @@ def main():
     # Set up modern theme
     style = ttk.Style()
     
-    # Configure some custom styles
-    style.configure("Accent.TButton", foreground="white")
+    # Use a compatible theme
+    try:
+        style.theme_use('clam')  # More reliable than default
+    except:
+        pass
+    
+    # Configure button styles for better visibility
+    style.configure("TButton", 
+                   foreground="black",
+                   background="#f0f0f0",
+                   relief="raised",
+                   borderwidth=1)
+    
+    style.map("TButton",
+             foreground=[('active', 'black'), ('pressed', 'black')],
+             background=[('active', '#e0e0e0'), ('pressed', '#d0d0d0')])
     
     app = ScreenQAApp(root)
     
