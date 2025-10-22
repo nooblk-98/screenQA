@@ -113,8 +113,96 @@ jobs:
         path: dist/ScreenQA
         retention-days: 30
 
+  build-macos:
+    runs-on: macos-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+        cache: 'pip'
+    
+    - name: Install system dependencies
+      run: |
+        # Install any macOS-specific dependencies if needed
+        brew install --cask chromedriver || true
+        
+    - name: Install Python dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install pyinstaller
+        # Install macOS-specific packages if needed
+        pip install pyobjc-framework-Cocoa || true
+        
+    - name: Build executable
+      run: |
+        if [ -f "ScreenQA-macOS.spec" ]; then
+            # Use macOS-specific spec file for better app bundle creation
+            python -m PyInstaller ScreenQA-macOS.spec --clean
+        elif [ -f "ScreenQA.spec" ]; then
+            # Fallback to regular spec file
+            python -m PyInstaller ScreenQA.spec --clean --windowed
+        else
+            # Create with PyInstaller defaults
+            python -m PyInstaller --onefile --windowed --name "ScreenQA" main.py
+        fi
+        
+    - name: Test executable
+      run: |
+        if [ -d "dist/ScreenQA.app" ]; then
+            echo "✅ Build successful - ScreenQA.app bundle created"
+            ls -la dist/ScreenQA.app/
+            ls -la dist/ScreenQA.app/Contents/MacOS/
+        elif [ -f "dist/ScreenQA" ]; then
+            echo "✅ Build successful - ScreenQA binary created"
+            ls -la dist/ScreenQA
+            file dist/ScreenQA
+        else
+            echo "❌ Build failed - executable not found"
+            ls -la dist/
+            exit 1
+        fi
+        
+    - name: Create DMG for distribution
+      run: |
+        if [ -d "dist/ScreenQA.app" ]; then
+            # Create DMG from app bundle
+            hdiutil create -volname "ScreenQA" -srcfolder "dist/ScreenQA.app" -ov -format UDZO "dist/ScreenQA-macOS.dmg"
+            echo "✅ macOS DMG created from app bundle"
+        else
+            # Create simple folder structure for DMG
+            mkdir -p "dist/ScreenQA-Package"
+            if [ -f "dist/ScreenQA" ]; then
+                cp "dist/ScreenQA" "dist/ScreenQA-Package/"
+                echo "ScreenQA - Website Screenshot Testing Tool" > "dist/ScreenQA-Package/README.txt"
+                echo "" >> "dist/ScreenQA-Package/README.txt"
+                echo "To run ScreenQA:" >> "dist/ScreenQA-Package/README.txt"
+                echo "1. Open Terminal" >> "dist/ScreenQA-Package/README.txt"
+                echo "2. Navigate to this folder" >> "dist/ScreenQA-Package/README.txt"
+                echo "3. Run: ./ScreenQA" >> "dist/ScreenQA-Package/README.txt"
+                hdiutil create -volname "ScreenQA" -srcfolder "dist/ScreenQA-Package" -ov -format UDZO "dist/ScreenQA-macOS.dmg"
+                echo "✅ macOS DMG created from binary"
+            fi
+        fi
+        
+        ls -la dist/
+        
+    - name: Upload macOS executable
+      uses: actions/upload-artifact@v4
+      with:
+        name: ScreenQA-macOS
+        path: |
+          dist/ScreenQA.app
+          dist/ScreenQA-macOS.dmg
+        retention-days: 30
+
   create-release:
-    needs: [build-windows, build-linux]
+    needs: [build-windows, build-linux, build-macos]
     runs-on: ubuntu-latest
     if: startsWith(github.ref, 'refs/tags/') || (github.event_name == 'workflow_dispatch' && inputs.create_release)
     
@@ -132,6 +220,12 @@ jobs:
       uses: actions/download-artifact@v4
       with:
         name: ScreenQA-Linux
+        path: ./artifacts/
+        
+    - name: Download macOS executable
+      uses: actions/download-artifact@v4
+      with:
+        name: ScreenQA-macOS
         path: ./artifacts/
         
     - name: Get version
@@ -155,23 +249,27 @@ jobs:
         files: |
           ./artifacts/ScreenQA.exe
           ./artifacts/ScreenQA
+          ./artifacts/ScreenQA-macOS.dmg
         body: |
           ## ScreenQA Release ${{ steps.version.outputs.version }}
           
           ### Downloads
           - **Windows**: ScreenQA.exe (double-click to run)
           - **Linux**: ScreenQA (run with `./ScreenQA`)
+          - **macOS**: ScreenQA-macOS.dmg (drag to Applications folder)
           
           ### Requirements
           - Chrome browser must be installed on the target machine
           - No Python installation required
+          - **macOS**: macOS 10.14 (Mojave) or later
           
           ### New in this release
+          - Cross-platform support (Windows, Linux, macOS)
           - Cross-device screenshot testing
-          - Resizable UI with drag bars
-          - Multiple screenshot modes (Full Page, Visible Window, Auto)
-          - Mouse wheel scrolling support
-          - Professional QA reporting tools
+          - Resizable UI with modern design
+          - Real-time logging and progress tracking
+          - Multiple screenshot modes (Full Page, Viewport, Auto)
+          - Professional reporting and gallery features
         generate_release_notes: true
         draft: false
         prerelease: ${{ !startsWith(github.ref, 'refs/tags/') }}
