@@ -204,7 +204,7 @@ jobs:
   create-release:
     needs: [build-windows, build-linux, build-macos]
     runs-on: ubuntu-latest
-    if: startsWith(github.ref, 'refs/tags/') || (github.event_name == 'workflow_dispatch' && inputs.create_release)
+    if: startsWith(github.ref, 'refs/tags/') || (github.event_name == 'workflow_dispatch' && inputs.create_release) || github.ref == 'refs/heads/main'
     
     steps:
     - name: Checkout repository
@@ -235,6 +235,8 @@ jobs:
           VERSION=${GITHUB_REF#refs/tags/}
         elif [[ "${{ inputs.release_version }}" != "" ]]; then
           VERSION="${{ inputs.release_version }}"
+        elif [[ $GITHUB_REF == refs/heads/main ]]; then
+          VERSION="v2.0.$(date +%Y%m%d.%H%M%S)"
         else
           VERSION="development-$(date +%Y%m%d-%H%M%S)"
         fi
@@ -263,13 +265,21 @@ jobs:
           - No Python installation required
           - **macOS**: macOS 10.14 (Mojave) or later
           
-          ### New in this release
-          - Cross-platform support (Windows, Linux, macOS)
-          - Cross-device screenshot testing
-          - Resizable UI with modern design
-          - Real-time logging and progress tracking
+          ### Latest Features
+          - **🎨 Modern UI Design**: Professional 3-column device layout
+          - **⚡ Viewport Mode Default**: Faster screenshot capture
+          - **📊 Real-Time Logging**: Color-coded logging with timestamps
+          - **👨‍💻 Developer Attribution**: Professional About page with GitHub integration
+          - **🔄 Streamlined Interface**: Cleaned up unnecessary sections
+          - **📸 UI Screenshots**: Updated README with interface previews
+          - **🖥️ Cross-Platform Builds**: Automated Windows, Linux, and macOS executables
+          
+          ### Core Features
+          - Cross-device screenshot testing (15+ device configurations)
           - Multiple screenshot modes (Full Page, Viewport, Auto)
+          - Real-time progress tracking and logging
           - Professional reporting and gallery features
+          - Resizable UI with drag-to-resize panels
         generate_release_notes: true
         draft: false
         prerelease: ${{ !startsWith(github.ref, 'refs/tags/') }}
