@@ -227,6 +227,36 @@ class ScreenQAApp:
         canvas.create_window((0, 0), window=self.devices_frame, anchor="nw")
         canvas.configure(yscrollcommand=scrollbar.set)
         
+        # Add mouse wheel scrolling support (cross-platform)
+        def on_mousewheel(event):
+            # Windows and MacOS
+            if event.delta:
+                canvas.yview_scroll(int(-1*(event.delta/120)), "units")
+            # Linux
+            elif event.num == 4:
+                canvas.yview_scroll(-1, "units")
+            elif event.num == 5:
+                canvas.yview_scroll(1, "units")
+        
+        # Bind mouse wheel to canvas and devices frame (Windows/Mac)
+        canvas.bind("<MouseWheel>", on_mousewheel)
+        self.devices_frame.bind("<MouseWheel>", on_mousewheel)
+        devices_container.bind("<MouseWheel>", on_mousewheel)
+        device_frame.bind("<MouseWheel>", on_mousewheel)
+        
+        # Linux mouse wheel support
+        canvas.bind("<Button-4>", on_mousewheel)
+        canvas.bind("<Button-5>", on_mousewheel)
+        self.devices_frame.bind("<Button-4>", on_mousewheel)
+        self.devices_frame.bind("<Button-5>", on_mousewheel)
+        devices_container.bind("<Button-4>", on_mousewheel)
+        devices_container.bind("<Button-5>", on_mousewheel)
+        device_frame.bind("<Button-4>", on_mousewheel)
+        device_frame.bind("<Button-5>", on_mousewheel)
+        
+        # Store canvas reference for later use
+        self.device_canvas = canvas
+        
         canvas.grid(row=0, column=0, sticky=(tk.W, tk.E, tk.N, tk.S))
         scrollbar.grid(row=0, column=1, sticky=(tk.N, tk.S))
         
@@ -582,6 +612,20 @@ class ScreenQAApp:
                     command=self.update_device_selection
                 )
                 checkbox.grid(row=row, column=0, sticky=(tk.W,), padx=20)
+                
+                # Add mouse wheel scrolling to each checkbox
+                if hasattr(self, 'device_canvas'):
+                    def checkbox_mousewheel(event):
+                        if event.delta:
+                            self.device_canvas.yview_scroll(int(-1*(event.delta/120)), "units")
+                        elif event.num == 4:
+                            self.device_canvas.yview_scroll(-1, "units")
+                        elif event.num == 5:
+                            self.device_canvas.yview_scroll(1, "units")
+                    
+                    checkbox.bind("<MouseWheel>", checkbox_mousewheel)
+                    checkbox.bind("<Button-4>", checkbox_mousewheel)
+                    checkbox.bind("<Button-5>", checkbox_mousewheel)
                 row += 1
         
         self.update_device_selection()
