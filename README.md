@@ -64,7 +64,7 @@ The modern interface features:
 ## ⚡ Quick Start
 
 ### Option 1: Download Executable (Recommended) 
-[![Build Status](https://github.com/nooblk-98/screenQA/workflows/Build%20ScreenQA%20Executable/badge.svg)](https://github.com/nooblk-98/screenQA/actions)
+[![Build Status](https://github.com/nooblk-98/screenQA/workflows/Build%20and%20Release%20ScreenQA/badge.svg)](https://github.com/nooblk-98/screenQA/actions)
 
 1. **Download the latest release**:
    - Go to [Releases](https://github.com/nooblk-98/screenQA/releases)
