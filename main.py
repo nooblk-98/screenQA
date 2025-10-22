@@ -31,6 +31,8 @@ class ScreenQAApp:
         self.selected_devices = []
         self.current_results = {}
         self.device_vars = {}  # Initialize device variables dictionary
+        self.screenshot_mode_var = tk.StringVar(value="full_page")  # Screenshot mode selection
+        self.result_data = {}  # Store result data for tree items
         
         # Setup UI
         self.setup_ui()
@@ -39,6 +41,10 @@ class ScreenQAApp:
         # Bind keyboard shortcuts
         self.root.bind('<F9>', lambda e: self.toggle_actions_panel())
         self.root.bind('<Control-Return>', lambda e: self.start_capture())
+        self.root.bind('<Control-l>', lambda e: self.clear_log())
+        self.root.bind('<Control-L>', lambda e: self.clear_log())
+        self.root.bind('<Control-s>', lambda e: self.save_log())
+        self.root.bind('<Control-S>', lambda e: self.save_log())
         
     def setup_ui(self):
         """Setup the modern user interface with improved layout and UX"""
@@ -586,15 +592,14 @@ class ScreenQAApp:
         
         ttk.Label(mode_frame, text="Screenshot Mode:", font=('Arial', 9, 'bold')).grid(row=0, column=0, sticky=(tk.W,))
         
-        self.screenshot_mode = tk.StringVar(value="full_page")
         mode_radio_frame = ttk.Frame(mode_frame)
         mode_radio_frame.grid(row=1, column=0, sticky=(tk.W,), pady=(5, 0))
         
-        ttk.Radiobutton(mode_radio_frame, text="📄 Full Page", variable=self.screenshot_mode, 
+        ttk.Radiobutton(mode_radio_frame, text="📄 Full Page", variable=self.screenshot_mode_var, 
                        value="full_page").grid(row=0, column=0, sticky=(tk.W,))
-        ttk.Radiobutton(mode_radio_frame, text="👁️ Viewport", variable=self.screenshot_mode, 
+        ttk.Radiobutton(mode_radio_frame, text="👁️ Viewport", variable=self.screenshot_mode_var, 
                        value="viewport").grid(row=1, column=0, sticky=(tk.W,))
-        ttk.Radiobutton(mode_radio_frame, text="🤖 Auto Detect", variable=self.screenshot_mode, 
+        ttk.Radiobutton(mode_radio_frame, text="🤖 Auto Detect", variable=self.screenshot_mode_var, 
                        value="auto").grid(row=2, column=0, sticky=(tk.W,))
         
         # Recent Screenshots section
@@ -691,6 +696,73 @@ class ScreenQAApp:
         """Toggle the sidebar visibility"""
         # This can be implemented to hide/show the sidebar
         pass
+
+    def log_message(self, level, message):
+        """Add a timestamped message to the log with appropriate formatting"""
+        if not hasattr(self, 'log_text'):
+            return
+        
+        from datetime import datetime
+        timestamp = datetime.now().strftime("%H:%M:%S")
+        
+        # Level icons
+        icons = {
+            "INFO": "ℹ️",
+            "SUCCESS": "✅", 
+            "WARNING": "⚠️",
+            "ERROR": "❌",
+            "DEBUG": "🔍"
+        }
+        
+        icon = icons.get(level, "📝")
+        formatted_message = f"[{timestamp}] {icon} {message}\n"
+        
+        # Insert the message with appropriate tag
+        self.log_text.insert(tk.END, formatted_message, level)
+        
+        # Auto-scroll if enabled
+        if hasattr(self, 'auto_scroll_var') and self.auto_scroll_var.get():
+            self.log_text.see(tk.END)
+        
+        # Update the UI immediately
+        self.root.update_idletasks()
+
+    def clear_log(self):
+        """Clear the log text area"""
+        if hasattr(self, 'log_text'):
+            self.log_text.delete(1.0, tk.END)
+            self.log_message("INFO", "🧹 Log cleared")
+
+    def save_log(self):
+        """Save the current log to a file"""
+        if not hasattr(self, 'log_text'):
+            return
+            
+        try:
+            from tkinter import filedialog
+            from datetime import datetime
+            
+            # Default filename with timestamp
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            default_filename = f"screenqa_log_{timestamp}.txt"
+            
+            filename = filedialog.asksaveasfilename(
+                defaultextension=".txt",
+                filetypes=[("Text files", "*.txt"), ("All files", "*.*")],
+                initialvalue=default_filename
+            )
+            
+            if filename:
+                with open(filename, 'w', encoding='utf-8') as f:
+                    f.write(self.log_text.get(1.0, tk.END))
+                self.log_message("SUCCESS", f"💾 Log saved to: {filename}")
+        except Exception as e:
+            self.log_message("ERROR", f"Failed to save log: {str(e)}")
+
+    def update_progress_status(self, message, progress_type="INFO"):
+        """Update both progress label and log with a message"""
+        self.progress_var.set(message)
+        self.log_message(progress_type, message)
     
     def setup_tabs(self, parent, row):
         """Setup tabbed interface for different views"""
@@ -718,9 +790,9 @@ class ScreenQAApp:
         self.setup_qa_tab(self.qa_frame)
     
     def setup_progress_tab(self, parent):
-        """Setup progress and results tab"""
+        """Setup progress and results tab with detailed logging"""
         parent.columnconfigure(0, weight=1)
-        parent.rowconfigure(1, weight=1)
+        parent.rowconfigure(2, weight=1)
         
         # Progress bar and status
         progress_frame = ttk.Frame(parent)
@@ -736,15 +808,64 @@ class ScreenQAApp:
         self.progress_bar = ttk.Progressbar(progress_frame, mode='indeterminate')
         self.progress_bar.grid(row=1, column=0, columnspan=2, sticky=(tk.W, tk.E), pady=(5, 0))
         
+        # Live logging area
+        log_frame = ttk.LabelFrame(parent, text="📝 Capture Log", padding="5")
+        log_frame.grid(row=1, column=0, sticky=(tk.W, tk.E, tk.N, tk.S), pady=(0, 10))
+        log_frame.columnconfigure(0, weight=1)
+        log_frame.rowconfigure(0, weight=1)
+        
+        # Log text area with scrollbar
+        log_container = ttk.Frame(log_frame)
+        log_container.grid(row=0, column=0, sticky=(tk.W, tk.E, tk.N, tk.S))
+        log_container.columnconfigure(0, weight=1)
+        log_container.rowconfigure(0, weight=1)
+        
+        self.log_text = tk.Text(log_container, height=8, wrap=tk.WORD, font=('Consolas', 9))
+        log_scrollbar = ttk.Scrollbar(log_container, orient="vertical", command=self.log_text.yview)
+        self.log_text.configure(yscrollcommand=log_scrollbar.set)
+        
+        self.log_text.grid(row=0, column=0, sticky=(tk.W, tk.E, tk.N, tk.S))
+        log_scrollbar.grid(row=0, column=1, sticky=(tk.N, tk.S))
+        
+        # Configure text tags for colored logging
+        self.log_text.tag_configure("INFO", foreground="#0066cc")
+        self.log_text.tag_configure("SUCCESS", foreground="#28a745")
+        self.log_text.tag_configure("WARNING", foreground="#ffc107")
+        self.log_text.tag_configure("ERROR", foreground="#dc3545")
+        self.log_text.tag_configure("DEBUG", foreground="#6c757d")
+        
+        # Log controls
+        log_controls = ttk.Frame(log_frame)
+        log_controls.grid(row=1, column=0, sticky=(tk.W, tk.E), pady=(10, 0))
+        
+        clear_btn = ttk.Button(log_controls, text="Clear Log", command=self.clear_log)
+        clear_btn.grid(row=0, column=0, padx=(0, 5))
+        
+        save_btn = ttk.Button(log_controls, text="Save Log", command=self.save_log)
+        save_btn.grid(row=0, column=1, padx=(0, 5))
+        
+        # Auto-scroll checkbox
+        self.auto_scroll_var = tk.BooleanVar(value=True)
+        auto_scroll_cb = ttk.Checkbutton(log_controls, text="Auto-scroll", variable=self.auto_scroll_var)
+        auto_scroll_cb.grid(row=0, column=2)
+        
+        # Add keyboard shortcut info
+        ttk.Label(log_controls, text="💡 Ctrl+L: Clear Log | Ctrl+S: Save Log", 
+                 font=('Arial', 8), foreground='#6c757d').grid(row=0, column=3, padx=(20, 0))
+        
+        # Add initial log entry
+        self.log_message("INFO", "🚀 ScreenQA initialized and ready for capture")
+        self.log_message("INFO", "💡 Press F9 to toggle sidebar | Ctrl+Enter to start capture")
+        
         # Results area
-        results_frame = ttk.LabelFrame(parent, text="Capture Results", padding="5")
-        results_frame.grid(row=1, column=0, sticky=(tk.W, tk.E, tk.N, tk.S))
+        results_frame = ttk.LabelFrame(parent, text="📊 Capture Results", padding="5")
+        results_frame.grid(row=2, column=0, sticky=(tk.W, tk.E, tk.N, tk.S))
         results_frame.columnconfigure(0, weight=1)
         results_frame.rowconfigure(0, weight=1)
         
         # Treeview for results
         columns = ('Device', 'Status', 'Resolution', 'Mode', 'File Size', 'Actions')
-        self.results_tree = ttk.Treeview(results_frame, columns=columns, show='headings', height=10)
+        self.results_tree = ttk.Treeview(results_frame, columns=columns, show='headings', height=8)
         
         for col in columns:
             self.results_tree.heading(col, text=col)
@@ -959,38 +1080,48 @@ class ScreenQAApp:
         for var in self.device_vars.values():
             var.set(True)
         self.update_device_selection()
+        self.log_message("INFO", f"📱 Selected all devices ({len(self.device_vars)} total)")
     
     def clear_all_devices(self):
         """Clear all device selections"""
         for var in self.device_vars.values():
             var.set(False)
         self.update_device_selection()
+        self.log_message("INFO", "🧹 Cleared all device selections")
     
     def select_mobile_devices(self):
         """Select only mobile devices"""
         self.clear_all_devices()
         mobile_keywords = ['iPhone', 'Android', 'Mobile', 'Galaxy', 'Pixel']
+        selected_count = 0
         for name, var in self.device_vars.items():
             if any(keyword in name for keyword in mobile_keywords):
                 var.set(True)
+                selected_count += 1
         self.update_device_selection()
+        self.log_message("INFO", f"📱 Selected {selected_count} mobile devices")
     
     def select_desktop_devices(self):
         """Select only desktop devices"""
         self.clear_all_devices()
         desktop_keywords = ['Desktop', 'MacBook', 'Windows', 'Mac']
+        selected_count = 0
         for name, var in self.device_vars.items():
             if any(keyword in name for keyword in desktop_keywords):
                 var.set(True)
+                selected_count += 1
         self.update_device_selection()
+        self.log_message("INFO", f"🖥️ Selected {selected_count} desktop devices")
     
     def validate_url(self):
-        """Validate the entered URL"""
+        """Validate the entered URL with logging"""
         url = self.url_var.get().strip()
         if not url:
+            self.log_message("WARNING", "⚠️ No URL entered for validation")
             messagebox.showwarning("Invalid URL", "Please enter a URL")
             return
         
+        self.log_message("INFO", f"🔍 Validating URL: {url}")
         self.status_var.set("Validating URL...")
         self.root.update()
         
@@ -998,63 +1129,93 @@ class ScreenQAApp:
         if valid:
             self.url_var.set(result)  # Set the corrected URL
             self.status_var.set(f"URL is valid: {result}")
+            self.log_message("SUCCESS", f"✅ URL is valid and accessible: {result}")
             messagebox.showinfo("Valid URL", f"URL is accessible: {result}")
         else:
             self.status_var.set(f"URL validation failed: {result}")
+            self.log_message("ERROR", f"❌ URL validation failed: {result}")
+            messagebox.showerror("Invalid URL", f"URL validation failed: {result}")
             messagebox.showerror("Invalid URL", f"URL validation failed: {result}")
     
     def start_capture(self):
-        """Start screenshot capture process"""
+        """Start screenshot capture process with detailed logging"""
         url = self.url_var.get().strip()
         if not url:
+            self.log_message("WARNING", "⚠️ No URL provided - capture cancelled")
             messagebox.showwarning("Missing URL", "Please enter a URL")
             return
         
         if not self.selected_devices:
+            self.log_message("WARNING", "⚠️ No devices selected - capture cancelled")
             messagebox.showwarning("No Devices", "Please select at least one device")
             return
         
+        self.log_message("INFO", f"🔍 Starting capture process for URL: {url}")
+        self.log_message("INFO", f"📱 Selected devices: {len(self.selected_devices)}")
+        
         # Validate URL first
+        self.update_progress_status("🔍 Validating URL...", "INFO")
         valid, validated_url = self.capture.validate_url(url)
         if not valid:
-            messagebox.showerror("Invalid URL", f"URL validation failed: {validated_url}")
+            error_msg = f"URL validation failed: {validated_url}"
+            self.log_message("ERROR", f"❌ {error_msg}")
+            messagebox.showerror("Invalid URL", error_msg)
             return
         
         self.url_var.set(validated_url)
+        self.log_message("SUCCESS", f"✅ URL validated: {validated_url}")
         
         # Clear previous results
         for item in self.results_tree.get_children():
             self.results_tree.delete(item)
         
         self.current_results = {}
+        self.result_data = {}  # Clear previous result data
+        self.log_message("INFO", "🧹 Cleared previous results")
         
         # Start progress indication
         self.progress_bar.start(10)
         self.capture_btn.config(state='disabled')
+        self.update_progress_status("🚀 Starting screenshot capture...", "INFO")
         
         # Get selected screenshot mode
         screenshot_mode = self.screenshot_mode_var.get()
+        self.log_message("INFO", f"📄 Screenshot mode: {screenshot_mode}")
+        
+        # Log device details
+        for device in self.selected_devices:
+            self.log_message("DEBUG", f"🖥️ Will capture: {device}")
         
         # Start async capture with selected mode
         success, message = self.async_capture.capture_async(
             validated_url, 
             self.selected_devices,
-            progress_callback=self.update_progress,
-            complete_callback=self.capture_complete,
+            progress_callback=self.update_progress_enhanced,
+            complete_callback=self.capture_complete_enhanced,
             screenshot_mode=screenshot_mode
         )
         
         if not success:
+            error_msg = f"Failed to start capture: {message}"
+            self.log_message("ERROR", f"❌ {error_msg}")
             messagebox.showerror("Capture Error", message)
             self.progress_bar.stop()
             self.capture_btn.config(state='normal')
+            self.update_progress_status("❌ Capture failed to start", "ERROR")
     
     def update_progress(self, message):
         """Update progress display"""
         self.progress_var.set(message)
         self.status_var.set(message)
         self.root.update()
-    
+
+    def update_progress_enhanced(self, message):
+        """Enhanced progress update with logging"""
+        self.progress_var.set(message)
+        self.status_var.set(message)
+        self.log_message("INFO", f"📊 {message}")
+        self.root.update()
+
     def capture_complete(self, results):
         """Handle capture completion"""
         self.current_results = results
@@ -1081,6 +1242,106 @@ class ScreenQAApp:
             else:
                 size_str = "N/A"
                 resolution = "N/A"
+
+    def capture_complete_enhanced(self, results):
+        """Enhanced capture completion with detailed logging"""
+        self.current_results = results
+        
+        # Stop progress bar and re-enable capture button
+        self.progress_bar.stop()
+        self.capture_btn.config(state='normal')
+        
+        total_devices = len(results)
+        success_count = 0
+        failed_count = 0
+        
+        self.log_message("INFO", "📊 Processing capture results...")
+        
+        # Update results tree and log each result
+        for device_name, result in results.items():
+            status = "Success" if result['success'] else "Failed"
+            
+            if result['success']:
+                success_count += 1
+                
+                # Get file size
+                try:
+                    file_size = os.path.getsize(result['screenshot_path'])
+                    size_str = f"{file_size / 1024:.1f} KB"
+                    self.log_message("SUCCESS", f"✅ {device_name}: Screenshot saved ({size_str}) - {result['screenshot_path']}")
+                except Exception as e:
+                    size_str = "Unknown"
+                    self.log_message("WARNING", f"⚠️ {device_name}: File size unknown - {str(e)}")
+                
+                resolution = f"{result['device_info']['width']}x{result['device_info']['height']}"
+            else:
+                failed_count += 1
+                size_str = "N/A"
+                resolution = "N/A"
+                error_msg = result.get('error', 'Unknown error')
+                self.log_message("ERROR", f"❌ {device_name}: Capture failed - {error_msg}")
+            
+            # Add to results tree
+            mode = result.get('screenshot_mode', 'Unknown')
+            item_id = self.results_tree.insert('', 'end', values=(
+                device_name, status, resolution, mode, size_str, "View"
+            ))
+            
+            # Store result reference for actions using tags (safer than trying to add to non-existent column)
+            try:
+                # Store the result path as a tag for later retrieval
+                result_path = result.get('screenshot_path', '')
+                self.results_tree.set(item_id, '#1', device_name)  # Ensure device name is set
+                # Store result data in a class variable for actions
+                if not hasattr(self, 'result_data'):
+                    self.result_data = {}
+                self.result_data[item_id] = result
+            except Exception as e:
+                self.log_message("ERROR", f"📊 Error storing result data: {str(e)}")
+        
+        # Final summary
+        self.log_message("INFO", f"📈 Capture completed: {success_count}/{total_devices} successful")
+        if failed_count > 0:
+            self.log_message("WARNING", f"⚠️ {failed_count} captures failed")
+        
+        # Log summary statistics
+        if success_count > 0:
+            total_size = 0
+            for device_name, result in results.items():
+                if result['success']:
+                    try:
+                        file_size = os.path.getsize(result['screenshot_path'])
+                        total_size += file_size
+                    except:
+                        pass
+            
+            if total_size > 0:
+                if total_size > 1024 * 1024:  # > 1MB
+                    size_str = f"{total_size / (1024*1024):.1f} MB"
+                else:
+                    size_str = f"{total_size / 1024:.1f} KB"
+                self.log_message("INFO", f"💾 Total screenshots size: {size_str}")
+        
+        # Update status
+        if success_count == total_devices:
+            status_msg = f"✅ All {total_devices} captures successful"
+            self.update_progress_status(status_msg, "SUCCESS")
+        elif success_count > 0:
+            status_msg = f"⚠️ {success_count}/{total_devices} captures successful"
+            self.update_progress_status(status_msg, "WARNING")
+        else:
+            status_msg = "❌ All captures failed"
+            self.update_progress_status(status_msg, "ERROR")
+        
+        # Update UI elements
+        self.refresh_preview()
+        self.refresh_gallery()
+        
+        # Show completion notification
+        if success_count > 0:
+            self.log_message("SUCCESS", f"🎉 Screenshot capture completed! Check the results above.")
+        else:
+            self.log_message("ERROR", f"😞 No screenshots were captured successfully.")
             
             # Get screenshot mode display name
             mode = result.get('screenshot_mode', 'full_page')
