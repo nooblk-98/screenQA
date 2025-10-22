@@ -31,7 +31,7 @@ class ScreenQAApp:
         self.selected_devices = []
         self.current_results = {}
         self.device_vars = {}  # Initialize device variables dictionary
-        self.screenshot_mode_var = tk.StringVar(value="full_page")  # Screenshot mode selection
+        self.screenshot_mode_var = tk.StringVar(value="viewport_only")  # Screenshot mode selection - default to viewport
         self.result_data = {}  # Store result data for tree items
         
         # Setup UI
@@ -145,7 +145,7 @@ class ScreenQAApp:
         
         ttk.Label(mode_frame, text="Screenshot Mode:").grid(row=0, column=0, padx=(0, 10))
         
-        self.screenshot_mode_var = tk.StringVar(value="full_page")
+        self.screenshot_mode_var = tk.StringVar(value="viewport_only")
         
         # Radio buttons for screenshot mode
         modes = [
@@ -689,7 +689,7 @@ class ScreenQAApp:
         ttk.Radiobutton(mode_radio_frame, text="📄 Full Page", variable=self.screenshot_mode_var, 
                        value="full_page").grid(row=0, column=0, sticky=(tk.W,))
         ttk.Radiobutton(mode_radio_frame, text="👁️ Viewport", variable=self.screenshot_mode_var, 
-                       value="viewport").grid(row=1, column=0, sticky=(tk.W,))
+                       value="viewport_only").grid(row=1, column=0, sticky=(tk.W,))
         ttk.Radiobutton(mode_radio_frame, text="🤖 Auto Detect", variable=self.screenshot_mode_var, 
                        value="auto").grid(row=2, column=0, sticky=(tk.W,))
         
