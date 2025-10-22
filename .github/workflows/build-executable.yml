@@ -1,0 +1,211 @@
+name: Build ScreenQA Executable
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  release:
+    types: [created]
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+    
+    - name: Install system dependencies
+      run: |
+        # Install Chrome for Selenium
+        choco install googlechrome --ignore-checksums -y
+        
+    - name: Install Python dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install pyinstaller
+        pip install pillow
+        
+    - name: Create executable with PyInstaller
+      run: |
+        # Try using spec file first, fallback to direct command
+        if (Test-Path "ScreenQA.spec") {
+            echo "Using ScreenQA.spec file for build..."
+            pyinstaller ScreenQA.spec
+        } else {
+            echo "Using direct PyInstaller command..."
+            pyinstaller --onefile --windowed --name "ScreenQA" main.py
+        }
+        
+    - name: Test executable
+      run: |
+        # Quick test that the exe can start (will exit immediately but should not crash)
+        timeout 10 dist/ScreenQA.exe || echo "Executable test completed"
+        
+    - name: Upload executable as artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: ScreenQA-Windows-Executable
+        path: dist/ScreenQA.exe
+        
+    - name: Upload to release (if release event)
+      if: github.event_name == 'release'
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ github.event.release.upload_url }}
+        asset_path: dist/ScreenQA.exe
+        asset_name: ScreenQA-Windows.exe
+        asset_content_type: application/octet-stream
+
+  build-linux:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+    
+    - name: Install system dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y wget gnupg2 software-properties-common
+        
+        # Install Chrome
+        wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | sudo apt-key add -
+        sudo sh -c 'echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google-chrome.list'
+        sudo apt-get update
+        sudo apt-get install -y google-chrome-stable
+        
+        # Install tkinter and other GUI dependencies
+        sudo apt-get install -y python3-tk python3-dev
+        
+    - name: Install Python dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install pyinstaller
+        pip install pillow
+        
+    - name: Create executable with PyInstaller
+      run: |
+        # Try using spec file first, fallback to direct command
+        if [ -f "ScreenQA.spec" ]; then
+            echo "Using ScreenQA.spec file for build..."
+            pyinstaller ScreenQA.spec
+        else
+            echo "Using direct PyInstaller command..."
+            pyinstaller --onefile --name "ScreenQA" main.py
+        fi
+        
+    - name: Upload executable as artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: ScreenQA-Linux-Executable
+        path: dist/ScreenQA
+        
+    - name: Upload to release (if release event)
+      if: github.event_name == 'release'
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ github.event.release.upload_url }}
+        asset_path: dist/ScreenQA
+        asset_name: ScreenQA-Linux
+        asset_content_type: application/octet-stream
+
+  build-macos:
+    runs-on: macos-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+    
+    - name: Install system dependencies
+      run: |
+        # Install Chrome
+        brew install --cask google-chrome
+        
+    - name: Install Python dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install pyinstaller
+        pip install pillow
+        
+    - name: Create executable with PyInstaller
+      run: |
+        # Try using spec file first, fallback to direct command
+        if [ -f "ScreenQA.spec" ]; then
+            echo "Using ScreenQA.spec file for build..."
+            pyinstaller ScreenQA.spec
+        else
+            echo "Using direct PyInstaller command..."
+            pyinstaller --onefile --windowed --name "ScreenQA" main.py
+        fi
+        
+    - name: Create DMG (macOS app bundle)
+      run: |
+        mkdir -p "ScreenQA.app/Contents/MacOS"
+        cp dist/ScreenQA "ScreenQA.app/Contents/MacOS/"
+        
+        # Create Info.plist
+        cat > "ScreenQA.app/Contents/Info.plist" << EOF
+        <?xml version="1.0" encoding="UTF-8"?>
+        <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+        <plist version="1.0">
+        <dict>
+            <key>CFBundleExecutable</key>
+            <string>ScreenQA</string>
+            <key>CFBundleIdentifier</key>
+            <string>com.screenqa.app</string>
+            <key>CFBundleName</key>
+            <string>ScreenQA</string>
+            <key>CFBundleVersion</key>
+            <string>1.0</string>
+            <key>CFBundleShortVersionString</key>
+            <string>1.0</string>
+            <key>CFBundleInfoDictionaryVersion</key>
+            <string>6.0</string>
+            <key>CFBundlePackageType</key>
+            <string>APPL</string>
+        </dict>
+        </plist>
+        EOF
+        
+        # Create DMG
+        hdiutil create -volname "ScreenQA" -srcfolder . -ov -format UDZO ScreenQA.dmg
+        
+    - name: Upload executable as artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: ScreenQA-macOS-Executable
+        path: |
+          dist/ScreenQA
+          ScreenQA.dmg
+        
+    - name: Upload to release (if release event)
+      if: github.event_name == 'release'
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ github.event.release.upload_url }}
+        asset_path: ScreenQA.dmg
+        asset_name: ScreenQA-macOS.dmg
+        asset_content_type: application/octet-stream

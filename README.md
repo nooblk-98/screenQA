@@ -43,7 +43,21 @@ A comprehensive Python application with a simple GUI for capturing website scree
 
 ## ⚡ Quick Start
 
-### Option 1: Easy Start (Windows)
+### Option 1: Download Executable (Recommended) 
+[![Build Status](https://github.com/nooblk-98/screenQA/workflows/Build%20ScreenQA%20Executable/badge.svg)](https://github.com/nooblk-98/screenQA/actions)
+
+1. **Download the latest release**:
+   - Go to [Releases](https://github.com/nooblk-98/screenQA/releases)
+   - Download `ScreenQA-Windows.exe` for Windows
+   - Download `ScreenQA-Linux` for Linux
+   - Download `ScreenQA-macOS.dmg` for macOS
+
+2. **Run the executable**:
+   - **Windows**: Double-click `ScreenQA-Windows.exe`
+   - **Linux**: `chmod +x ScreenQA-Linux && ./ScreenQA-Linux`
+   - **macOS**: Open `ScreenQA-macOS.dmg` and run the app
+
+### Option 2: Easy Start (Windows - from source)
 1. **Download/Clone** this repository
 2. **Double-click** `start_screenqa.bat`
 3. The script will automatically:
@@ -51,7 +65,7 @@ A comprehensive Python application with a simple GUI for capturing website scree
    - Install all dependencies
    - Launch the application
 
-### Option 2: Manual Installation
+### Option 3: Manual Installation (from source)
 1. **Clone the repository**:
    ```bash
    git clone <repository-url>
@@ -243,6 +257,31 @@ Edit `config/devices.json` to add new device configurations:
 ## 📝 License
 
 This project is open source and available under the MIT License.
+
+## 🏗️ Building Executables
+
+### Automatic Builds
+The project includes GitHub Actions that automatically create executables for all platforms:
+- **Windows**: `ScreenQA-Windows.exe`
+- **Linux**: `ScreenQA-Linux`
+- **macOS**: `ScreenQA-macOS.dmg`
+
+Builds are triggered on:
+- Push to main branch
+- Pull requests 
+- New releases
+
+### Local Build
+```bash
+# Windows
+build_executable.bat
+
+# Linux/macOS  
+chmod +x build_executable.sh
+./build_executable.sh
+```
+
+For detailed build instructions, see [BUILD.md](BUILD.md).
 
 ## 🤝 Contributing
 
