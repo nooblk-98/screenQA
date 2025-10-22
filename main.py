@@ -65,7 +65,7 @@ class ScreenQAApp:
         
         # Top pane - Device Selection (resizable height)
         self.device_pane = ttk.Frame(self.main_paned)
-        self.main_paned.add(self.device_pane, minsize=120, height=180)
+        self.main_paned.add(self.device_pane, minsize=150, height=250)
         self.setup_device_section_resizable(self.device_pane)
         
         # Bottom pane - Main content with horizontal split
@@ -194,7 +194,7 @@ class ScreenQAApp:
     def setup_device_section_resizable(self, parent):
         """Setup resizable device selection section"""
         parent.columnconfigure(0, weight=1)
-        parent.rowconfigure(1, weight=1)
+        parent.rowconfigure(0, weight=1)
         
         # Device selection frame
         device_frame = ttk.LabelFrame(parent, text="Device Selection", padding="5")
@@ -218,7 +218,7 @@ class ScreenQAApp:
         devices_container.rowconfigure(0, weight=1)
         
         # Scrollable canvas for devices
-        canvas = tk.Canvas(devices_container)
+        canvas = tk.Canvas(devices_container, height=150)
         scrollbar = ttk.Scrollbar(devices_container, orient="vertical", command=canvas.yview)
         self.devices_frame = ttk.Frame(canvas)
         
